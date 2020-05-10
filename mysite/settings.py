@@ -2,6 +2,7 @@
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+#director root
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -44,7 +45,7 @@ ROOT_URLCONF = 'mysite.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['menu/templates','polls/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -110,6 +111,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [ #NEAPARAT sa il pun, altfel NU imi vede fisierele statice
-    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "static"), # BASE_DIR este directorul root (adica mysite)
     'polls/static',
+    'menu/static',
 ]
