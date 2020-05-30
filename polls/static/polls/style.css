@@ -12,3 +12,7 @@ unselected_choice{
    background-color: lightblue;
    color: red;
 }
+
+.error{
+    color:red;
+}
