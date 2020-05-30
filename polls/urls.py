@@ -1,19 +1,25 @@
 from django.urls import path
-from . import views #  . = folderul curent
+from . import views #  din folderul curent
 
 
 app_name = 'polls'
 
 urlpatterns = [
-    # ex: /polls/
-    path('', views.IndexView.as_view(), name='index'), #nu mai adauga nimic la ruta
+    # ex: /polls/home
+    path('home/', views.HomeView, name='home'), #nu mai adauga nimic la ruta
 
-    # ex: /polls/5/
-    path('<int:pk>/', views.DetailView.as_view(), name='detail'),
+    # ex: /polls/index
+    path('index/', views.IndexView, name='index'),
 
-    # ex: /polls/5/results/
-    path('<int:pk>/results/', views.ResultsView.as_view(), name = 'results'),
+    # ex: /polls/details/5/
+    path('details/<int:poll_id>/', views.DetailView, name='detail'),
 
     # ex: /polls/5/vote/
-    path('<int:question_id>/vote/', views.vote, name='vote'),
+    # folosese <> pt a prelua valoarea din ruta; folosesc 'int' pt conversie la int
+    #pot sa pun orice nume in loc de 'poll_id', dar trebuie sa fie IDENTIC cu cel din View
+    path('details/<int:poll_id>/vote/', views.vote, name='vote'),
+
+    # ex: /polls/5/results/
+    path('results/<int:poll_id>/', views.ResultsView, name = 'results'),
+
 ]

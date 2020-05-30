@@ -21,13 +21,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'polls.apps.PollsConfig',
+    #'polls.apps.PollsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'accounts',
+    'polls',
 ]
 
 MIDDLEWARE = [
@@ -45,7 +47,7 @@ ROOT_URLCONF = 'mysite.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['menu/templates','polls/templates'],
+        'DIRS': ['polls/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -111,7 +113,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [ #NEAPARAT sa il pun, altfel NU imi vede fisierele statice
-    os.path.join(BASE_DIR, "static"), # BASE_DIR este directorul root (adica mysite)
+    os.path.join(BASE_DIR, 'static'), # BASE_DIR este directorul root (adica mysite)
     'polls/static',
-    'menu/static',
 ]
