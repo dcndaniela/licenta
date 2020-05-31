@@ -26,13 +26,7 @@ def IndexView(request):
     if request.user.is_superuser:
         polls = Question.objects.all() #Admin ul vede toate polls
 
-    # paginator = Paginator(polls, 2)
-    # page_number = request.GET.get('page')
-    # page_obj = paginator.get_page(page_number)
-    # context={'polls':page_obj}
-
     page = request.GET.get('page', 1)
-
     paginator = Paginator(polls, 2)
     try:
         polls_paginated = paginator.page(page)
