@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404, render,redirect
 from django.urls import reverse
@@ -10,6 +12,7 @@ from polls.models import Question, Choice
 from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def HomeView(request):
     return render(request,'polls/home.html')
 
@@ -19,7 +22,10 @@ def IndexView(request):
         #prima {} cu settings.LOGIN_URL; a 2-a {} cu request.path
         settings.configure()
         return redirect('{}?next={}'.format(settings.LOGIN_URL, request.path))
-    polls=Question.objects.all()
+    # cele activate care au start_date inainte de prezentul meu
+    polls=Question.objects.filter(isActive=True).filter(start_date__lte = timezone.now()).order_by('start_date')
+    if request.user.is_superuser:
+        polls = Question.objects.all() #Admin ul vede toate polls
     context={'polls':polls}
     return render(request, 'polls/index.html',context)
 
@@ -30,11 +36,17 @@ def IndexView(request):
 @login_required
 def DetailView(request,poll_id):
     qs = get_object_or_404(Question,id=poll_id)
+
+    # daca NU este activa sau inca nu a fost publicata, este vizibila doar pentru Admin
+    if not qs.isActive or qs.start_date>timezone.now() :
+        if not request.user.is_superuser:
+            return redirect('polls:index')
+
     context={'question': qs}
     return render(request, 'polls/detail.html', context)
 
-@login_required
 
+@login_required
 def ResultsView(request,poll_id):
     qs = get_object_or_404(Question, id = poll_id)
     context = {'question': qs}
