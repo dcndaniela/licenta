@@ -27,13 +27,13 @@ def IndexView(request):
 # in ordinea descresctaoare publicarii
      #   return Question.objects.filter(pub_date__lte = timezone.now()).order_by('-pub_date')[:5] #Questions care au pub_date<=timezone.now
 
-#@login_required
+@login_required
 def DetailView(request,poll_id):
     qs = get_object_or_404(Question,id=poll_id)
     context={'question': qs}
     return render(request, 'polls/detail.html', context)
 
-#@login_required
+@login_required
 
 def ResultsView(request,poll_id):
     qs = get_object_or_404(Question, id = poll_id)
@@ -41,7 +41,7 @@ def ResultsView(request,poll_id):
     return render(request, 'polls/results.html', context)
 
 
-#@login_required
+@login_required
 def vote(request, poll_id):
     question = get_object_or_404(Question, pk = poll_id)
     choice_id=request.POST.get('choice')
