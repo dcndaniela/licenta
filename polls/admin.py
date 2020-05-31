@@ -15,11 +15,12 @@ class InLineChoices(admin.TabularInline):
     max_num= 7 # nr maxim de choices
 
 class QuestionAdmin(admin.ModelAdmin): # admin.ModelAdmin = clasa din care mosteneste QuestionAdmin
-    inlines = [InLineChoices] #contina lista claselor care mostenesc din clasa InLine
+    inlines = [InLineChoices] #contine lista claselor care mostenesc din clasa InLine
     list_display = ('question_title','start_date','end_date')
     list_filter = ('isActive',)
     list_editable=('start_date','end_date')
     search_fields = ('question_title',)
+    date_hierarchy = 'start_date' #filtru
     fields= (
         'question_title',
         'question_content',

@@ -1,0 +1,29 @@
+{% extends 'polls/base.html' %} <!--includ base.html -->
+
+{% load static %}
+<link href="{% static 'menu/style.css' %}" rel="stylesheet" type="text/css">
+
+{% block main_content %} <!--override lui main_content din base.html -->
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div id="home-content">
+
+                {% if request.user.is_authenticated %}
+                Hi, {{request.user.username}}
+                {% endif %}
+
+                <h1>PollMe- Get Started! </h1>
+                <img src="https://image.shutterstock.com/image-vector/heart-chat-bubble-icons-professional-260nw-703160551.jpg" />
+                <h3>Your Voice Matters!</h3>
+                <hr> <!-- trasez o linie subtire -->
+                <button class="btn btn-light btn-lg" type="button">Get Started!</button>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+</div>
+
+

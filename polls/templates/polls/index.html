@@ -1,0 +1,85 @@
+{% extends 'polls/base.html' %} <!--includ base.html -->
+
+
+{% block extra_head %}
+<script crossorigin="anonymous" src="https://kit.fontawesome.com/bf6595f4f6.js"></script>
+{% endblock %}
+
+{% block main_content %}
+
+<div class="container">
+    <h1 class="text-center">Welcome to poll list </h1>
+    <div class="row">
+        <div class="col-sm-8 offset-sm-2">
+
+<!--            <button class="btn btn-primary" style="margin-bottom: 5px">Add-->
+<!--                <i class="fa fa-plus" aria-hidden="true"></i> &lt;!&ndash; + este luat din fontawesome.com -> icons &ndash;&gt;-->
+<!--            </button>-->
+
+            <div class="list-group">
+                {%for poll in polls%}
+                           <a class="list-group-item list-group-item-action " href="{%url 'polls:detail' poll.id %}">
+                               <strong>{{poll}} </strong>
+                               <p></p>
+                               <span style="color: darkcyan">From: <i>{{poll.start_date|date:"d M Y h:i A"}}</i>
+                                                             To: <i>{{poll.end_date|date:"d M Y h:i A"}}</i>
+                               </span>
+
+<!--                               <a href="{%url 'polls:detail' poll.id %}">-->
+<!--                                           <div class="text-lg-right">-->
+<!--                                               <button class="btn btn-info" >VOTE-->
+<!--                                               <i class="fa fa-pencil-square-o" aria-hidden="true"></i> &lt;!&ndash; + este luat din fontawesome.com -> icons &ndash;&gt;-->
+<!--                                           </button>-->
+<!--                                           </div>-->
+<!--                               </a>-->
+                           </a>
+                {%endfor%}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--<div class="pagination">-->
+<!--    <span class="step-links">-->
+<!--        {% if polls.has_previous %}-->
+<!--            <a href="?page=1">&laquo; first</a>-->
+<!--            <a href="?page={{ polls.previous_page_number }}">previous</a>-->
+<!--        {% endif %}-->
+<!--        </br>-->
+<!--        <span class="current">-->
+<!--            Page {{ polls.number }} of {{ polls.paginator.num_pages }}.-->
+<!--        </span>-->
+
+<!--        {% if polls.has_next %}-->
+<!--            <a href="?page={{ polls.next_page_number }}">next</a>-->
+<!--            <a href="?page={{ polls.paginator.num_pages }}">last &raquo;</a>-->
+<!--        {% endif %}-->
+<!--    </span>-->
+<!--</div>-->
+
+
+<!-- pentru paginare:-->
+{% if polls.has_other_pages %}
+  <ul class="pagination">
+    {% if polls.has_previous %}
+      <li><a href="?page={{ polls.previous_page_number }}">&laquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&laquo;</span></li>
+    {% endif %}
+    {% for i in polls.paginator.page_range %}
+      {% if polls.number == i %}
+        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+      {% else %}
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
+      {% endif %}
+    {% endfor %}
+    {% if polls.has_next %}
+      <li><a href="?page={{ polls.next_page_number }}">&raquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&raquo;</span></li>
+    {% endif %}
+  </ul>
+{% endif %}
+
+{% endblock %}

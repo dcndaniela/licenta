@@ -1,15 +1,14 @@
 from django.utils import timezone
-
-from django.http.response import Http404
 from django.shortcuts import get_object_or_404, render,redirect
 from django.urls import reverse
-from django.views import generic
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
-
 from polls.models import Question, Choice
 from django.contrib.auth.decorators import login_required
+from django.views.generic import ListView
+from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
+
 
 
 @login_required
@@ -26,12 +25,25 @@ def IndexView(request):
     polls=Question.objects.filter(isActive=True).filter(start_date__lte = timezone.now()).order_by('start_date')
     if request.user.is_superuser:
         polls = Question.objects.all() #Admin ul vede toate polls
-    context={'polls':polls}
+
+    # paginator = Paginator(polls, 2)
+    # page_number = request.GET.get('page')
+    # page_obj = paginator.get_page(page_number)
+    # context={'polls':page_obj}
+
+    page = request.GET.get('page', 1)
+
+    paginator = Paginator(polls, 2)
+    try:
+        polls_paginated = paginator.page(page)
+    except PageNotAnInteger:
+        polls_paginated = paginator.page(1)
+    except EmptyPage:
+        polls_paginated = paginator.page(paginator.num_pages)
+
+    context = {'polls': polls_paginated}
     return render(request, 'polls/index.html',context)
 
-# Return the last five published questions (not including those set to be published in the future),
-# in ordinea descresctaoare publicarii
-     #   return Question.objects.filter(pub_date__lte = timezone.now()).order_by('-pub_date')[:5] #Questions care au pub_date<=timezone.now
 
 @login_required
 def DetailView(request,poll_id):

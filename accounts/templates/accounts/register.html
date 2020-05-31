@@ -1,0 +1,27 @@
+{% extends 'polls/base.html' %} <!--includ base.html -->
+
+{% block main_content %}
+
+<div class="container">
+    <div class="row">
+         <div class="col-sm-6 col offset-sm-3">
+             <p> Already have an account? <a href="{% url 'accounts:login' %}"> Login Here! </a> </p>
+                <form action="" method="post"> <!-- pun action="" pt ca NU vreau sa ma redirectioneze catre alt view " -->
+                {% csrf_token %}
+                    {% for field in form %}
+                          <div class="form-group">
+                              {{ field.errors }} <!-- am folosit 'Working with form templates' din documentation -->
+                              {{ field.label_tag }}
+                              {{ field }}
+                          </div>
+                    {% endfor %}
+                    <input class='btn btn-primary' type="submit" value="submit">
+                </form>
+         </div>
+    </div>
+</div>
+
+
+
+
+{% endblock%}

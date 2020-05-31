@@ -1,0 +1,57 @@
+
+{% load static %}
+ <link href="{% static 'polls/style.css' %}" rel="stylesheet" type="text/css">
+
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+    <meta content="" name="description">
+    <title>Title</title>
+
+    <!-- ia bootstrap de pe net -->
+    <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+          rel="stylesheet">
+
+    <!-- apoi ia din fisierul meu static -->
+    <link href="{% static 'polls/bootstrap-4.4.1-dist/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static 'polls/style.css' %}" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+<hr>
+<p> Header</p>
+<hr>
+
+{%include "polls/header.html" %} <!--  este un template tag -->
+
+<div class="jumbotron">
+   <div class="container">
+       {% block extra_head %}
+       {% endblock %}
+
+
+       {% block main_content %} <!-- main_content block va fi override in .html care are tag-ul extends base.html  -->
+           <h1>This header tag will be overwritten by any child template that defines a block main_content</h1>
+       {% endblock %}
+
+       {% include "polls/footer.html" %}
+   </div>
+
+</div>
+
+<!-- acestea 2 le includ pt CDN (jQuery si Popper.js), inainte de js -->
+<script crossorigin="anonymous"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+<script crossorigin="anonymous"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<!-- pun js aici pt ca js este folosit in contentul paginii web (deci in body), si vreau ca mai intai sa se incarce contentul paginii -->
+ <script crossorigin="anonymous"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+</body>
+</html>
