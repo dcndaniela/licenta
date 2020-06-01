@@ -68,11 +68,14 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mysite', # numele BD create in pgAdmin
+        'USER': 'postgres', # Adminul
+        'PASSWORD': 'Administrator1!',  #password pentru postgres (postgre supersuser)
+        'HOST': '127.0.0.1',
+        'PORT': '5432', # port default pentru PostgreSQL
+        }
     }
-}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
