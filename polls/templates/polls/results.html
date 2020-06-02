@@ -12,9 +12,9 @@
                     <li{% if message.tags %} class="{{ message.tags }}" {% endif %} > {{ message }}</li>
                     {% endfor %}
                 </ul>
-            {% endif %}
+            {% endif %}zz
             <ul>
-                {% for choice in question.choice_set.all %}
+                {% for choice in election.choice_set.all %}
                 <li>{{choice.choice_text}} - {{choice.votes}}</li>
                 {% endfor %}
             </ul>

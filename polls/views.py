@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
-from polls.models import Question, Choice
+from polls.models import Election, Choice
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
 from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
@@ -22,9 +22,9 @@ def IndexView(request):
         settings.configure()
         return redirect('{}?next={}'.format(settings.LOGIN_URL, request.path))
     # cele activate care au start_date inainte de prezentul meu
-    polls=Question.objects.filter(isActive=True).filter(start_date__lte = timezone.now()).order_by('start_date')
+    polls=Election.objects.filter(isActive=True).filter(start_date__lte = timezone.now()).order_by('start_date')
     if request.user.is_superuser:
-        polls = Question.objects.all() #Admin ul vede toate polls
+        polls = Election.objects.all() #Admin ul vede toate polls
 
     page = request.GET.get('page', 1)
     paginator = Paginator(polls, 2)
@@ -41,27 +41,27 @@ def IndexView(request):
 
 @login_required
 def DetailView(request,poll_id):
-    qs = get_object_or_404(Question,id=poll_id)
+    qs = get_object_or_404(Election, id=poll_id)
 
     # daca NU este activa sau inca nu a fost publicata, este vizibila doar pentru Admin
     if not qs.isActive or qs.start_date>timezone.now() :
         if not request.user.is_superuser:
             return redirect('polls:index')
 
-    context={'question': qs}
+    context={'election': qs}
     return render(request, 'polls/detail.html', context)
 
 
 @login_required
 def ResultsView(request,poll_id):
-    qs = get_object_or_404(Question, id = poll_id)
-    context = {'question': qs}
+    qs = get_object_or_404(Election, id = poll_id)
+    context = {'election': qs}
     return render(request, 'polls/results.html', context)
 
 
 @login_required
 def vote(request, poll_id):
-    question = get_object_or_404(Question, pk = poll_id)
+    election = get_object_or_404(Election, pk = poll_id)
     choice_id=request.POST.get('choice')
     if choice_id:
         choice=Choice.objects.get(id=choice_id)

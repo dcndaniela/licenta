@@ -11,15 +11,15 @@
                 </ul>
 {% endif %}
 
-<h1>{{ question.question_content }}</h1>
+<h1>{{ election.election_content }}</h1>
 <div class="container">
     <div class="row">
         <div class="col">
 
 
-<form action="{% url 'polls:vote' question.id %}" method="post"> <!-- polls=namespace din urls, vote=namespace din polls.urls -->
+<form action="{% url 'polls:vote' election.id %}" method="post"> <!-- polls=namespace din urls, vote=namespace din polls.urls -->
 {% csrf_token %}
-{% for choice in question.choice_set.all %}<!-- forloop.counter = asociaza fiecarui buton cate 1 id -->
+{% for choice in election.choice_set.all %}<!-- forloop.counter = asociaza fiecarui buton cate 1 id -->
     <input id="choice{{ forloop.counter }}" name="choice" type="radio" value="{{ choice.id }}">
     <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label>
     <br>
@@ -32,5 +32,12 @@
     </div>
 </div>
 
+<button onclick="myFunction()">Click me!</button>
+<p id="demo"></p>
+<script>
+    function myFunction() {
+        document.getElementById("demo").innerHTML = "Hello Dear Visitor";
+    }
+</script>
 
 {% endblock %}
