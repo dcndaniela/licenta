@@ -1,16 +1,17 @@
 from django.db import models
-import datetime
 from django.utils import timezone
 from django.contrib.auth.models import User
 import hashlib
 from django.contrib.auth.hashers import BCryptSHA256PasswordHasher
 from . import utils_functions
+from datetime import datetime
+import django.utils.timezone
 
 class Election(models.Model):
     election_uuid = models.CharField(max_length = 50, null = False)
     election_title= models.CharField('Election name',max_length=200, default = 'Set an election name')
-    election_content = models.CharField('Election',max_length=200)
-    pub_date = models.DateTimeField('date published')
+    election_content = models.CharField('Election content',max_length=200)
+    pub_date = models.DateTimeField('date published',default= timezone.now, blank=True)
     start_date= models.DateTimeField(null= True) #setez default
     end_date= models.DateTimeField(null= True)
     isActive= models.BooleanField('PUBLISH',default = False) #devine True cand va fi facuta public
@@ -57,15 +58,29 @@ class Voter(models.Model):
 class Choice(models.Model):#1 Choice apartine unei singure Election
     election = models.ForeignKey(Election, on_delete=models.CASCADE)#sterg Election => se sterg toate Choice pe care le are
     choice_text = models.CharField(max_length=200)
-    votes = models.IntegerField(default=0)
-    choice_hash = models.CharField(max_length = 100)
+    #votes = models.IntegerField(default=0)
+    choice_hash = models.CharField(max_length = 100, null = True, unique = True)
     # hash scurt pe care sa il pun in url
     choice_tinyhash = models.CharField(max_length = 50, null = True, unique = True)
-    voter = models.ForeignKey(Voter, on_delete = models.CASCADE)
-
+    #voter = models.ForeignKey(Voter, on_delete = models.CASCADE)
     def __str__(self):
         return self.choice_text
 
 
+# class Vote (models.Model):#1 Choice apartine unei singure Election
+#     choice=   models.ForeignKey(Choice, on_delete=models.CASCADE)
+#     #election = models.CharField(max_length = 200)
+#     choice_text = models.CharField(max_length=200)
+#     votes = models.IntegerField(default=0)
+#     vote_hash = models.CharField(max_length = 100,null = True, unique = True)
+#     # hash scurt pe care sa il pun in url
+#     vote_tinyhash = models.CharField(max_length = 50, null = True, unique = True)
+#     #voter = models.ForeignKey(Voter, on_delete = models.CASCADE)
 
+class AuditedBallot(models.Model):
+
+  election = models.ForeignKey(Election, on_delete=models.CASCADE)
+  raw_vote = models.TextField()
+  vote_hash = models.CharField(max_length=100)
+  added_at = models.DateTimeField(auto_now_add=True)
 

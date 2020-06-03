@@ -22,4 +22,6 @@ urlpatterns = [
     # ex: /polls/5/results/
     path('results/<int:poll_id>/', views.ResultsView, name = 'results'),
 
+
+    path('add/', views.AddElectionView, name = 'add'),
 ]

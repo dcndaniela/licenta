@@ -12,9 +12,21 @@
     <div class="row">
         <div class="col-sm-8 offset-sm-2">
 
-<!--            <button class="btn btn-primary" style="margin-bottom: 5px">Add-->
-<!--                <i class="fa fa-plus" aria-hidden="true"></i> &lt;!&ndash; + este luat din fontawesome.com -> icons &ndash;&gt;-->
-<!--            </button>-->
+            {% if messages %}
+                   {% for message in messages %}
+                              <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
+                                  {{ message }}
+                                  <button aria-label="Close" class="close" data-dismiss="alert" type="button">
+                                      <span aria-hidden="true">&times;</span>
+                                    </button> <!-- adaug acest buton ca sa inchid mesajul de alerta -->
+                              </div>
+                   {% endfor %}
+            {% endif %}
+
+<!--            polls= namespace dat in urls.py; add=ruta data in polls/urls.py-->
+            <a class="btn btn-primary" href="{% url 'polls:add' %}" style="margin-bottom: 5px">Add
+                <i aria-hidden="true" class="fa fa-plus"></i> <!-- + este luat din fontawesome.com -> icons -->
+            </a>
 
             <div class="list-group">
                 {%for poll in polls%}

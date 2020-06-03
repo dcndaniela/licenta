@@ -8,7 +8,7 @@ from polls.models import Election, Choice
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
 from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
-
+from polls.forms import ElectionForm
 
 
 @login_required
@@ -37,6 +37,32 @@ def IndexView(request):
 
     context = {'polls': polls_paginated}
     return render(request, 'polls/index.html',context)
+
+@login_required
+def AddElectionView(request):
+    if request.method =="POST":
+        form=ElectionForm(request.POST)
+        if form.is_valid(): #in documentatiela forms-> save method
+            new_election=form.save()#salvez in BD
+            #new_poll = form.save(commit=False)  # NU salvez in BD; dupa ce modific apelez manual: new_poll.save()
+            new_choice1=Choice(
+                election=new_election,
+                choice_text=form.cleaned_data['choice1']
+                ).save()
+            new_choice2 = Choice(
+                election = new_election,
+                choice_text = form.cleaned_data['choice2'] #choice2 din forms.py
+                ).save()
+            #alert alert-success este din Bootstrap
+            messages.success(request,'Election and choices added',extra_tags = 'alert alert-success alert-dismissible fade show')
+            return redirect('polls:index')
+    else:
+        form=ElectionForm()
+
+    form=ElectionForm()
+    context={'form':form} # 'form' este keyword pe care il folosesc in html
+    return render(request,'polls/add.html',context)
+
 
 
 @login_required
