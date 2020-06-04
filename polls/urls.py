@@ -22,6 +22,16 @@ urlpatterns = [
     # ex: /polls/5/results/
     path('results/<int:poll_id>/', views.ResultsView, name = 'results'),
 
-
     path('add/', views.AddElectionView, name = 'add'),
+
+    path('edit/<int:poll_id>/',views.EditElectionView,name='edit'),
+#informatiile din ruta sunt pasate in View din views.py
+    path('delete/poll/<int:poll_id>/', views.DeleteElectionView, name='delete'),
+
+    path('edit/<int:poll_id>/choice/add/',views.AddChoiceView, name="add_choice"),
+
+    path('edit/choice/<int:choice_id>/',views.EditChoiceView, name="edit_choice"),
+
+    path('delete/choice/<int:choice_id>/', views.DeleteChoiceView, name='delete_choice'),
+
 ]

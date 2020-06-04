@@ -8,8 +8,8 @@ from polls.models import Election, Choice
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
 from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
-from polls.forms import ElectionForm
-
+from polls.forms import ElectionForm, EditElectionForm, ChoiceForm
+import datetime
 
 @login_required
 def HomeView(request):
@@ -43,6 +43,9 @@ def AddElectionView(request):
     if request.method =="POST":
         form=ElectionForm(request.POST)
         if form.is_valid(): #in documentatiela forms-> save method
+            new_election = form.save(commit=False)# NU salvez inca in BD
+            #new_election.pub_date=datetime.datetime.now()
+            new_election.owner=request.user
             new_election=form.save()#salvez in BD
             #new_poll = form.save(commit=False)  # NU salvez in BD; dupa ce modific apelez manual: new_poll.save()
             new_choice1=Choice(
@@ -54,7 +57,7 @@ def AddElectionView(request):
                 choice_text = form.cleaned_data['choice2'] #choice2 din forms.py
                 ).save()
             #alert alert-success este din Bootstrap
-            messages.success(request,'Election and choices added',extra_tags = 'alert alert-success alert-dismissible fade show')
+            messages.success(request,'Election was successfully added!',extra_tags = 'alert alert-success alert-dismissible fade show')
             return redirect('polls:index')
     else:
         form=ElectionForm()
@@ -62,6 +65,101 @@ def AddElectionView(request):
     form=ElectionForm()
     context={'form':form} # 'form' este keyword pe care il folosesc in html
     return render(request,'polls/add.html',context)
+
+@login_required()
+def EditElectionView(request,poll_id):
+    poll=get_object_or_404(Election,id=poll_id)
+    if request.user!=poll.owner:
+        return redirect ('accounts:login')
+
+    if request.method=="POST":
+        form= EditElectionForm(request.POST,instance = poll)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Election was successfully modified!',
+                             extra_tags = 'alert alert-success alert-dismissible fade show')
+            return redirect('polls:index')
+
+    else:
+        form= EditElectionForm(instance = poll)
+        # pun {'form':form} ca sa imi afiseze fields din form; 'poll':poll pentru a adauga choice
+    return render(request,'polls/edit.html',{'form':form, 'poll':poll})
+
+
+@login_required
+def DeleteElectionView(request, poll_id):
+    poll = get_object_or_404(Election, id = poll_id)
+    if request.user != poll.owner:
+        return redirect('accounts:login')
+
+    if request.method == "POST":
+        poll.delete()
+        messages.success(
+            request,
+            'Election deleted successfully',
+            extra_tags = 'alert alert-success alert-dismissible fade show'
+            )
+        return redirect('polls:index')
+    return render(request, 'polls/delete.html', {'poll': poll})
+
+
+@login_required
+def AddChoiceView(request, poll_id):
+    poll=get_object_or_404(Election,id=poll_id)
+    if request.user!=poll.owner:
+        return redirect ('accounts:login')
+
+    if request.method=="POST":
+        form= ChoiceForm(request.POST)
+        if form.is_valid():
+            new_choice=form.save(commit = False)
+            new_choice.election=poll
+            new_choice.save()
+            messages.success(request, 'Choice added successfully !',
+                             extra_tags = 'alert alert-success alert-dismissible fade show')
+            return redirect('polls:index')
+    else:
+        form= ChoiceForm()
+    return render(request,'polls/add_choice.html',{'form':form})# pun {'form':form} ca sa imi afiseze fields din form
+
+
+@login_required
+def EditChoiceView(request,choice_id):
+    choice=get_object_or_404(Choice,id=choice_id)
+    poll=get_object_or_404(Election,id=choice.election.id)
+    if request.user!=poll.owner:
+        return redirect ('accounts:login')
+
+    if request.method=="POST":
+        form= ChoiceForm(request.POST,instance = choice)
+        if form.is_valid():
+            form.save() #editez choice care exista deja
+            messages.success(request, 'Choice edited successfully !',
+                             extra_tags = 'alert alert-success alert-dismissible fade show')
+            return redirect('polls:index')
+    else:
+        form= ChoiceForm(instance = choice)
+        # pasez choice ca sa o accesez
+    return render(request, 'polls/add_choice.html', {'form':form, 'edit_mode': True, 'choice':choice})
+
+
+@login_required
+def DeleteChoiceView(request,choice_id):
+    choice = get_object_or_404(Choice, id = choice_id)
+    poll = get_object_or_404(Election, id = choice.election.id)
+    if request.user != poll.owner:
+        return redirect('accounts:login')
+
+    if request.method == "POST":
+        choice.delete()
+        messages.success(
+        request,
+        'Choice deleted successfully',
+        extra_tags = 'alert alert-success alert-dismissible fade show'
+        )
+        return redirect('polls:index')
+        #return redirect('polls:edit', choice_id=choice.id)
+    return render(request, 'polls/delete_choice.html', {'choice': choice})
 
 
 

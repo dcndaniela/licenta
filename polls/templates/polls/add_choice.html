@@ -1,0 +1,42 @@
+{% extends 'polls/base.html' %} <!--includ base.html -->
+
+
+{% block main_content %} <!--override lui main_content din base.html -->
+
+
+<div class="container">
+    <h1 class="text-center">
+        {%if edit_mode %}
+               Edit choice
+        {% else %}
+              Add a new choice
+    {% endif %}
+    </h1>
+    <br> <br>
+
+<div class="row">
+    <div class="col-sm-6 offset-sm-3">
+
+        <form action="" method="post"> <!-- pun action="" pt ca NU vreau sa ma redirectioneze catre alt view " -->
+                      {% csrf_token %}
+                          {% for field in form %}
+                                <div class="form-group">
+                                    {{ field.errors }} <!-- am folosit 'Working with form templates' din documentation -->
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                </div>
+                          {% endfor %}
+                          <input class='btn btn-primary' type="submit" value="Submit">
+                          {% if edit_mode %}
+                                 <a class='btn btn-danger'
+                                             href="{% url 'polls:delete_choice' choice.id %}">
+                                              <i class="far fa-trash-alt"></i> Delete
+                                 </a>
+                          {% endif %}
+        </form>
+    </div>
+    </div>
+</div>
+
+
+{% endblock %}

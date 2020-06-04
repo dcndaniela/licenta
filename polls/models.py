@@ -8,6 +8,7 @@ from datetime import datetime
 import django.utils.timezone
 
 class Election(models.Model):
+    owner=models.ForeignKey(User,on_delete = models.CASCADE, default = 1)
     election_uuid = models.CharField(max_length = 50, null = False)
     election_title= models.CharField('Election name',max_length=200, default = 'Set an election name')
     election_content = models.CharField('Election content',max_length=200)

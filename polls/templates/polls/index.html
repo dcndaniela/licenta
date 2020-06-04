@@ -1,9 +1,6 @@
 {% extends 'polls/base.html' %} <!--includ base.html -->
 
 
-{% block extra_head %}
-<script crossorigin="anonymous" src="https://kit.fontawesome.com/bf6595f4f6.js"></script>
-{% endblock %}
 
 {% block main_content %}
 
@@ -28,14 +25,17 @@
                 <i aria-hidden="true" class="fa fa-plus"></i> <!-- + este luat din fontawesome.com -> icons -->
             </a>
 
-            <div class="list-group">
+            <ul class="list-group">
                 {%for poll in polls%}
-                           <a class="list-group-item list-group-item-action " href="{%url 'polls:detail' poll.id %}">
-                               <strong>{{poll}} </strong>
-                               <p></p>
+                           <li class="list-group-item ">
+                               <a  href="{%url 'polls:detail' poll.id %}"><strong>{{poll}} </strong></a>
+                                   <p></p>
                                <span style="color: darkcyan">From: <i>{{poll.start_date|date:"d M Y h:i A"}}</i>
                                                              To: <i>{{poll.end_date|date:"d M Y h:i A"}}</i>
                                </span>
+                               {% if request.user == poll.owner %}
+                                                              <a class="float-right" href="{%url 'polls:edit' poll.id %}"><i aria-hidden="true" class="fa fa-pencil"></i></a>
+                                                              {% endif %}
 
 <!--                               <a href="{%url 'polls:detail' poll.id %}">-->
 <!--                                           <div class="text-lg-right">-->
@@ -44,9 +44,9 @@
 <!--                                           </button>-->
 <!--                                           </div>-->
 <!--                               </a>-->
-                           </a>
+                           </li>
                 {%endfor%}
-            </div>
+            </ul>
         </div>
     </div>
 </div>

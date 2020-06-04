@@ -1,5 +1,5 @@
 from django import forms
-from polls.models import Election
+from polls.models import Election, Choice
 from django.contrib.admin import widgets
 from django.contrib.admin.widgets import AdminSplitDateTime
 
@@ -26,3 +26,23 @@ class ElectionForm(forms.ModelForm): #acest form il import in views.py
            # 'start_date':DateInput(),
             'isActive':forms.CheckboxInput()
             }
+
+
+class EditElectionForm(forms.ModelForm):
+    class Meta:  # pt a defini datele actuale ale clasei
+        model = Election
+        fields = ['election_title', 'election_content', 'start_date', 'end_date', 'isActive']
+        # model.start_date=forms.DateField(widget = DateInput) #ca sa selectez data din calendar
+        model.start_date = forms.DateTimeField()
+        model.end_date = forms.DateTimeField()
+        widgets = {
+            'election_title': forms.Textarea(attrs = {"class": "form-control", "rows": 3, "cols": 20}),
+            # 'start_date':DateInput(),
+            'isActive': forms.CheckboxInput()
+            }
+
+class ChoiceForm(forms.ModelForm):
+    class Meta:
+        model=Choice
+        fields=['choice_text']
+

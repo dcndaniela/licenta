@@ -1,0 +1,42 @@
+{% extends 'polls/base.html' %} <!--includ base.html -->
+
+
+{% block main_content %} <!--override lui main_content din base.html -->
+
+
+<div class="container">
+    <h1 class="text-center">Edit election !</h1>
+    <br> <br>
+
+<div class="row">
+    <div class="col-sm-6 offset-sm-3">
+
+        <form action="" method="post"> <!-- pun action="" pt ca NU vreau sa ma redirectioneze catre alt view " -->
+                      {% csrf_token %}
+                          {% for field in form %}
+                                <div class="form-group">
+                                    {{ field.errors }} <!-- am folosit 'Working with form templates' din documentation -->
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                </div>
+                          {% endfor %}
+                          <input class='btn btn-primary' type="submit" value="Submit">
+                          <a class="btn btn-warning" href="{%url 'polls:add_choice' poll.id %}">Add choice</a>
+                          <a class='btn btn-danger' href="{%url 'polls:delete' poll.id %}">
+                           <i class="far fa-trash-alt"></i> Delete
+                           </a>
+
+
+        </form>
+
+        <h3 class="text-center">Choices</h3>
+        {% for choice in poll.choice_set.all %}
+        <p><a href="{%url 'polls:edit_choice' choice.id %}"><i class="fa fa-pencil"></i></a>{{choice}}</p>
+        {%endfor%}
+
+    </div>
+    </div>
+</div>
+
+
+{% endblock %}

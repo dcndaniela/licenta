@@ -25,6 +25,7 @@ class ElectionAdmin(admin.ModelAdmin): # admin.ModelAdmin = clasa din care moste
     search_fields = ('election_title',)
     date_hierarchy = 'start_date' #filtru
     fields= (
+        'owner',
         'election_title',
         'election_content',
         'pub_date',
