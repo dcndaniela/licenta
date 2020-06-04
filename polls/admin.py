@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Election,Choice, Voter, AuditedBallot
+from .models import Election,Choice, Voter, AuditedBallot, Vote
 from django.contrib.auth.models import Group, User
 
 #admin.site.register(Election)  #ca sa fie vizibile pt Admin
@@ -7,6 +7,7 @@ from django.contrib.auth.models import Group, User
 admin.site.unregister(Group)
 #admin.site.register(Voter)
 admin.site.register(AuditedBallot)
+admin.site.register(Vote)
 #admin.site.register(Choice)
 
 admin.site.site_header='Admin Dashboard'

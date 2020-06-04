@@ -19,6 +19,43 @@ class Election(models.Model):
     def __str__(self): #aceasta functie exista pt fiecare obiect, deci ii fac override aici
         return self.election_title
 
+    def user_can_vote(self,user):
+        #returneaza True daca userul NU a votat inca
+        user_votes=user.vote_set.all()
+        qs=user_votes.filter(election=self)
+        if qs.exists():
+            return False
+        return True
+
+    @property #ca sa pot apela num_votes-proprietate, in loc de num_votes() -functie
+    #astfel o pot apela in templates (html)
+    def num_votes(self):
+        return self.vote_set.count()
+
+    def get_results_dict(self):
+        #returneaza o lista de obiecte de forma
+        # [
+        #     pt fiecare choice din aceasta Election
+        #     {
+        #         'text':choice_text,
+        #         'num_votes': nr de voturi primite de choice curenta
+        #         'percentage': num_votes/ election.num_votes *100 (voturi primite/voturi totale *100)
+        #         }
+        #     ]
+        res=[]
+        #self= Election ( aka pointerul this)
+        for choice in self.choice_set.all(): #parinte acceseaza infos din copil
+            d={}
+            d['text']=choice.choice_text
+            d['num_votes']=choice.num_votes
+            if not self.num_votes:
+                d['percentage'] = 0
+            else:
+                d['percentage']=choice.num_votes/self.num_votes *100
+            res.append(d)
+        return res
+
+
 
 class Voter(models.Model):
     #voter_id = models.CharField(max_length = 50, null = False) #id criptat al votantului
@@ -66,6 +103,18 @@ class Choice(models.Model):#1 Choice apartine unei singure Election
     #voter = models.ForeignKey(Voter, on_delete = models.CASCADE)
     def __str__(self):
         return self.choice_text
+
+    @property
+    def num_votes(self):
+        return self.vote_set.count()#nr de voturi primite de aceasta choice
+
+
+
+class Vote(models.Model):#ca un user sa NU poata vota de mai multe ori
+    #models.PROTECT = daca sterg P(parinte), iar acesta are copii, nu il pot sterge (pe P)
+    user=models.ForeignKey(User,on_delete = models.CASCADE)#sterg User=> sterg toate Votes asociate
+    election=models.ForeignKey(Election,on_delete = models.CASCADE)#sterg Election=> sterg toate Votes asociate
+    choice=models.ForeignKey(Choice,on_delete = models.CASCADE)#sterg Choice=> sterg toate Votes asociate
 
 
 # class Vote (models.Model):#1 Choice apartine unei singure Election

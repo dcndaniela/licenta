@@ -24,7 +24,7 @@
     <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label>
     <br>
 {% endfor %}
-<input class="btn btn-success" type="submit" value="Vote"/>
+<input %} %}disabled class="btn btn-success" endif if not type="submit" user_can_vote value="Vote" {% {%/>
 </form>
 <a href="{% url 'polls:index' %}"> <-Back to elections list</a>
 

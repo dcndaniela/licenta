@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
-from polls.models import Election, Choice
+from polls.models import Election, Choice, Vote
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
 from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
@@ -165,34 +165,45 @@ def DeleteChoiceView(request,choice_id):
 
 @login_required
 def DetailView(request,poll_id):
-    qs = get_object_or_404(Election, id=poll_id)
+    poll = get_object_or_404(Election, id=poll_id)
 
+    user_can_vote=poll.user_can_vote(request.user)
     # daca NU este activa sau inca nu a fost publicata, este vizibila doar pentru Admin
-    if not qs.isActive or qs.start_date>timezone.now() :
+    if not poll.isActive or poll.start_date>timezone.now() :
         if not request.user.is_superuser:
             return redirect('polls:index')
 
-    context={'election': qs}
+    context={'election': poll,'user_can_vote':user_can_vote}
     return render(request, 'polls/detail.html', context)
 
 
 @login_required
 def ResultsView(request,poll_id):
-    qs = get_object_or_404(Election, id = poll_id)
-    context = {'election': qs}
+    poll = get_object_or_404(Election, id = poll_id)
+    user_can_vote = poll.user_can_vote(request.user)
+    results=poll.get_results_dict()
+    context = {'election': poll, 'results':results }
     return render(request, 'polls/results.html', context)
 
 
 @login_required
 def vote(request, poll_id):
     election = get_object_or_404(Election, pk = poll_id)
+
+    if not election.user_can_vote(request.user):
+        messages.error(request, 'You have already voted on this election!')
+        return redirect('polls:detail', poll_id = poll_id)
+
     choice_id=request.POST.get('choice')
     if choice_id:
         choice=Choice.objects.get(id=choice_id)
-        choice.votes+=1
-        choice.save()
+        new_vote=Vote(user=request.user, election=election, choice=choice)
+        new_vote.save()
+        print(choice)
+        #choice.votes+=1
+        #choice.save()
     else:
         messages.error(request,'You must select a choice')
         #return redirect('polls:detail', poll_id = poll_id)
-        return HttpResponseRedirect(reverse('polls:detail',args=(poll_id,)))
+        return redirect('polls:detail', poll_id = poll_id)
     return redirect('polls:results', poll_id = poll_id)
