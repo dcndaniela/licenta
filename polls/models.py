@@ -16,8 +16,15 @@ class Election(models.Model):
     start_date= models.DateTimeField(null= True) #setez default
     end_date= models.DateTimeField(null= True)
     isActive= models.BooleanField('PUBLISH',default = False) #devine True cand va fi facuta public
+
     def __str__(self): #aceasta functie exista pt fiecare obiect, deci ii fac override aici
         return self.election_title
+
+    @property
+    def can_see_results(self):#rezultatele se afiseaza dupa ce s-a incheiat perioada de vot
+        if self.end_date <= timezone.now():
+            return True
+        return False
 
     def user_can_vote(self,user):
         #returneaza True daca userul NU a votat inca

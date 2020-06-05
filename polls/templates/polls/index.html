@@ -21,29 +21,38 @@
             {% endif %}
 
 <!--            polls= namespace dat in urls.py; add=ruta data in polls/urls.py-->
-            <a class="btn btn-primary" href="{% url 'polls:add' %}" style="margin-bottom: 5px">Add
-                <i aria-hidden="true" class="fa fa-plus"></i> <!-- + este luat din fontawesome.com -> icons -->
+<!-- sortare dupa nume: -->
+            <a class="btn btn-{% if 'title' in request.GET %}warning{%else%}primary{%endif%}"
+               href="?title=True" style="margin-bottom: 5px">
+<!-- btn-warning(galben) daca este activ, altfel btn-primary(albastru) -->
+<!-- pot pune orcie in loc de =True pt ca practic verific daca se afla in dictionary(adica daca a fost apasat)-->
+                A-Z  <!-- href="?title=True" ca sa fac btn-warning -->
+            </a>
+
+            <a class="btn btn-primary" href="{% url 'polls:add' %}" style="margin-bottom: 5px">
+                Add
+                <i class="fa fa-plus"></i> <!-- + este luat din fontawesome.com -> icons -->
             </a>
 
             <ul class="list-group">
                 {%for poll in polls%}
                            <li class="list-group-item ">
                                <a  href="{%url 'polls:detail' poll.id %}"><strong>{{poll}} </strong></a>
-                                   <p></p>
-                               <span style="color: darkcyan">From: <i>{{poll.start_date|date:"d M Y h:i A"}}</i>
-                                                             To: <i>{{poll.end_date|date:"d M Y h:i A"}}</i>
-                               </span>
                                {% if request.user == poll.owner %}
-                                                              <a class="float-right" href="{%url 'polls:edit' poll.id %}"><i aria-hidden="true" class="fa fa-pencil"></i></a>
-                                                              {% endif %}
+                                      <a class="float-right" href="{%url 'polls:edit' poll.id %}">
+                                      <i aria-hidden="true" class="fa fa-pencil"></i></a>
+                               {% endif %}
+                                   <p></p>
 
-<!--                               <a href="{%url 'polls:detail' poll.id %}">-->
-<!--                                           <div class="text-lg-right">-->
-<!--                                               <button class="btn btn-info" >VOTE-->
-<!--                                               <i class="fa fa-pencil-square-o" aria-hidden="true"></i> &lt;!&ndash; + este luat din fontawesome.com -> icons &ndash;&gt;-->
-<!--                                           </button>-->
-<!--                                           </div>-->
-<!--                               </a>-->
+                               <span style="color: darkcyan">From: <i>{{poll.start_date|date:"d M Y h:i A"}}</i>
+                                                 To: <i>{{poll.end_date|date:"d M Y h:i A"}}</i>
+                               </span>
+                               {% if poll.can_see_results  %}
+                               <a class="float-right" href="{%url 'polls:results' poll.id %}">
+                               <i aria-hidden="true" class="fa fa-bar-chart"></i>Results
+                               {%endif%}
+
+
                            </li>
                 {%endfor%}
             </ul>
@@ -55,19 +64,22 @@
 {% if polls.has_other_pages %}
   <ul class="pagination">
     {% if polls.has_previous %}
-      <li><a href="?page={{ polls.previous_page_number }}">&laquo;</a></li>
+<!--      pun &{{params}} pt ca toate paginile sa fie sortate alfabetic at cand este selectat A-Z-->
+      <li><a href="?page={{ polls.previous_page_number }}&{{params}}">&laquo;</a></li>
     {% else %}
       <li class="disabled"><span>&laquo;</span></li>
     {% endif %}
+
     {% for i in polls.paginator.page_range %}
       {% if polls.number == i %}
         <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
       {% else %}
-        <li><a href="?page={{ i }}">{{ i }}</a></li>
+        <li><a href="?page={{ i }}&{{params}}">{{ i }}</a></li>
       {% endif %}
     {% endfor %}
+
     {% if polls.has_next %}
-      <li><a href="?page={{ polls.next_page_number }}">&raquo;</a></li>
+      <li><a href="?page={{ polls.next_page_number }}&{{params}}">&raquo;</a></li>
     {% else %}
       <li class="disabled"><span>&raquo;</span></li>
     {% endif %}
