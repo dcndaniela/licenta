@@ -1,3 +1,4 @@
+import uuid as uuid
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, render,redirect
 from django.urls import reverse
@@ -9,8 +10,18 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
 from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
 from polls.forms import ElectionForm, EditElectionForm, ChoiceForm
+import uuid
 
 # !!! Ce trimit in context este vizibil in template(.html) !!!!!
+
+
+
+
+
+
+
+
+
 
 @login_required
 def HomeView(request):
@@ -215,8 +226,10 @@ def vote(request, poll_id):
 
     choice_id=request.POST.get('choice')
     if choice_id:
+        #user_uuid=str(uuid.uuid4())
+        cast_at=timezone.now()
         choice=Choice.objects.get(id=choice_id)
-        new_vote=Vote(user=request.user, election=election, choice=choice)
+        new_vote=Vote(user=request.user, election=election, choice=choice,cast_at=cast_at)
         new_vote.save()
         print(choice)
         #choice.votes+=1

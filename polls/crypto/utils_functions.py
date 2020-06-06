@@ -17,6 +17,12 @@ def hash_b64(s):
   result= base64.b64encode(hasher.digest())[:-1]
   return result
 
+def do_hmac(k,s):
+  """
+  HMAC a value with a key, hex output
+  """
+  mac = hmac.new(k, s, hashlib.sha1)
+  return mac.hexdigest()
 
 def random_string(length=20, alphabet=None):
     random.seed()

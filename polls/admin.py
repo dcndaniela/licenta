@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Election,Choice, Voter, AuditedBallot, Vote
+from .models import Election,Choice, AuditedBallot, Vote
 from django.contrib.auth.models import Group, User
 
 #admin.site.register(Election)  #ca sa fie vizibile pt Admin

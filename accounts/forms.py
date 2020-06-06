@@ -1,15 +1,21 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+#from accounts.models import CustomUser
 #format:   clean_ + nume_field
 
 
 class RegisterForm(forms.Form):
     # folosesc widgets pt stilizare fields
-    username = forms.CharField(label='Username', max_length=100, min_length=5,
-                               widget=forms.TextInput(attrs={'class':'form-control'}))
-    email= forms.EmailField(widget=forms.TextInput(attrs={'class':'form-control'}))
+    username = forms.CharField(label='CNP', max_length=13, min_length=13,
+                               widget=forms.TextInput(attrs={'class':'form-control'}),
+                               validators=[RegexValidator(r'^[0-9]+$', 'Enter a valid CNP.')])
+    email= forms.CharField(label='Phone', max_length=10, min_length=10,
+                            widget=forms.TextInput(attrs={'class':'form-control'}),
+                            validators=[RegexValidator(r'^07[0-9]+$', 'Enter a valid Phone number.')])
     password1 = forms.CharField(label = 'Password', max_length = 100, min_length=8,
                                 widget=forms.PasswordInput(attrs={'class':'form-control'}))
     password2 = forms.CharField(label = 'Confirm Password', max_length = 100, min_length=8,
@@ -25,6 +31,31 @@ class RegisterForm(forms.Form):
                 params = {'value': '42'},
                 )
         return(emailUser)
+#
+# class RegisterForm(forms.Form):
+#     # folosesc widgets pt stilizare fields
+#     cnp= forms.CharField(label='CNP', max_length=13, min_length=13,
+#                                widget=forms.TextInput(attrs={'class':'form-control'}))
+#     phone= forms.CharField('Phone',min_length=10,max_length = 10, null = False,
+#                         error_messages={'incomplete': 'Enter a phone number.'},
+#                         validators=[RegexValidator(r'^[0-9]+$', 'Enter a valid phone number.')],
+#                         widget=forms.TextInput(attrs={'class':'form-control'}))
+#     password1 = forms.CharField(label = 'Password', max_length = 100, min_length=8,
+#                                 widget=forms.PasswordInput(attrs={'class':'form-control'}))
+#     password2 = forms.CharField(label = 'Confirm Password', max_length = 100, min_length=8,
+#                                 widget=forms.PasswordInput(attrs={'class':'form-control'}))
+#
+#     def clean_cnp(self):#clean pe field-ul email
+#         cnpUser= self.cleaned_data['cnp']
+#         qs= User.objects.filter(cnp=cnpUser) #qs=query set;ma asiur ca email ul e unic
+#         if qs.exists():
+#             raise ValidationError(
+#                 _('CNP already used!'),#fiind clean pe field, mesajul apare deasupra fieldului
+#                 code = 'err1',
+#                 params = {'value': '42'},
+#                 )
+#         return(cnpUser)
+
 
     #def clean_password2(self): #arunca eroare daca folseam password1(referentia password2 care se crea dupa validarea lui password1)
       #  p1=self.cleaned_data['password1']

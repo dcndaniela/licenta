@@ -7,6 +7,7 @@
          <div class="col-sm-6 col offset-sm-3">
              <p> Already have an account? <a href="{% url 'accounts:login' %}"> Login Here! </a> </p>
                 <form action="" method="post"> <!-- pun action="" pt ca NU vreau sa ma redirectioneze catre alt view " -->
+
                 {% csrf_token %}
                     {% for field in form %}
                           <div class="form-group">
@@ -15,6 +16,11 @@
                               {{ field }}
                           </div>
                     {% endfor %}
+                    <small class="form-text text-muted">
+                         These informations are required in order to validate your identity.
+                         We won't share your informations with anyone else.
+                    </small>
+                    <br>
                     <input class='btn btn-primary' type="submit" value="submit">
                 </form>
          </div>

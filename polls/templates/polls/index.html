@@ -36,7 +36,7 @@
 
             <ul class="list-group">
                 {%for poll in polls%}
-                           <li class="list-group-item ">
+                           <li class="list-group-item " >
                                <a  href="{%url 'polls:detail' poll.id %}"><strong>{{poll}} </strong></a>
                                {% if request.user == poll.owner %}
                                       <a class="float-right" href="{%url 'polls:edit' poll.id %}">
@@ -49,10 +49,8 @@
                                </span>
                                {% if poll.can_see_results  %}
                                <a class="float-right" href="{%url 'polls:results' poll.id %}">
-                               <i aria-hidden="true" class="fa fa-bar-chart"></i>Results
+                               <i aria-hidden="true" class="fa fa-bar-chart"></i>Results</a>
                                {%endif%}
-
-
                            </li>
                 {%endfor%}
             </ul>
