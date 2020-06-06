@@ -1,20 +1,85 @@
+import uuid
+
 from django.core.validators import RegexValidator
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
-# Create your models here.
-# from django.contrib.auth.models import(
-#         AbstractBaseUser
-#     )
-#
-# class User(AbstractBaseUser):  #clasa User pe care o scriu eu, ca sa inlocuiasca User django class
-#     email=
-# from django.contrib.auth.models import AbstractUser
-#
-#
-# class CustomUser(AbstractUser):
-#     cnp= models.CharField('CNP',min_length=13,max_length = 13, null = False)
-#     #phone= models.CharField('Phone',min_length=10,max_length = 10, null = False)
-#     phone=models.CharField('Phone',min_length=10,max_length = 10, null = False,
-#                     error_messages={'incomplete': 'Enter a phone number.'},
-#                     validators=[RegexValidator(r'^[0-9]+$', 'Enter a valid phone number.')])
-#     password=models.CharField('Password',min_length=11, null = False)
+
+class MyAccountManager(BaseUserManager):
+    def create_user(self,cnp,phone,password):
+        if not cnp:
+            raise ValueError("CNP is required")
+        if not phone:
+            raise ValueError("Phone number is required")
+      #  if not password:
+      #      raise ValueError("Password is required")
+
+        user=self.model(
+            cnp=cnp,
+            phone=phone,
+            #password=password,
+            )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, cnp, phone, password):
+        user = self.create_user(
+            cnp = cnp,
+            phone = phone,
+            password=password,
+            )
+        user.is_admin= True
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
+
+
+class CustomUser(AbstractBaseUser):
+    cnp= models.CharField(verbose_name = 'CNP',max_length = 13, null = False,unique=True,
+                          validators=[RegexValidator(r'^[0-9]+$', 'Enter a valid CNP.')])
+    phone=models.CharField(verbose_name = 'Phone', max_length = 10, null = False,unique=True,
+                           validators = [RegexValidator(r'^07[0-9]+$', 'Enter a valid Phone number.')]
+                           )
+    alias = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+
+    #acestea sunt fields required:
+    username= models.CharField(max_length = 30,null=True, default = 'user')
+    date_joined=models.DateTimeField(verbose_name = 'date joined',auto_now_add = True)
+    last_login = models.DateTimeField(verbose_name = 'last login',auto_now_add = True)
+    is_admin= models.BooleanField(default = False)
+    is_active = models.BooleanField(default = True)
+    is_staff = models.BooleanField(default = False)
+    is_superuser = models.BooleanField(default = False)
+
+    USERNAME_FIELD='cnp'
+    REQUIRED_FIELDS=['phone','password',]
+
+    objects=MyAccountManager()
+
+    def __str__(self):
+        return self.phone
+
+    def has_perm(self,perm,obj=None):
+        return self.is_admin
+
+    def has_module_perms(self,app_label):
+        return True
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.models import User
+from accounts.models import CustomUser as User
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
@@ -10,10 +10,10 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 
 class RegisterForm(forms.Form):
     # folosesc widgets pt stilizare fields
-    username = forms.CharField(label='CNP', max_length=13, min_length=13,
+    cnp = forms.CharField(label='CNP', max_length=13, min_length=13,
                                widget=forms.TextInput(attrs={'class':'form-control'}),
                                validators=[RegexValidator(r'^[0-9]+$', 'Enter a valid CNP.')])
-    email= forms.CharField(label='Phone', max_length=10, min_length=10,
+    phone= forms.CharField(label='Phone', max_length=10, min_length=10,
                             widget=forms.TextInput(attrs={'class':'form-control'}),
                             validators=[RegexValidator(r'^07[0-9]+$', 'Enter a valid Phone number.')])
     password1 = forms.CharField(label = 'Password', max_length = 100, min_length=8,
@@ -21,16 +21,31 @@ class RegisterForm(forms.Form):
     password2 = forms.CharField(label = 'Confirm Password', max_length = 100, min_length=8,
                                 widget=forms.PasswordInput(attrs={'class':'form-control'}))
 
-    def clean_email(self):#clean pe field-ul email
-        emailUser= self.cleaned_data['email']
-        qs= User.objects.filter(email=emailUser) #qs=query set;ma asiur ca email ul e unic
-        if qs.exists():
-            raise ValidationError(
-                _('Email already used!'),#fiind clean pe field, mesajul apare deasupra fieldului
-                code = 'err1',
-                params = {'value': '42'},
-                )
-        return(emailUser)
+    # def clean_cnp(self):#clean pe field-ul email
+    #     cnpUser= self.cleaned_data['cnp']
+    #     qs= User.objects.filter(email=cnpUser) #qs=query set;ma asiur ca email ul e unic
+    #     if qs.exists():
+    #         raise ValidationError(
+    #             _('CNP already used!'),#fiind clean pe field, mesajul apare deasupra fieldului
+    #             code = 'err1',
+    #             params = {'value': '42'},
+    #             )
+    #     return(cnpUser)
+    #
+    # def clean_phone(self):  # clean pe field-ul email
+    #     phoneUser = self.cleaned_data['cnp']
+    #     qs = User.objects.filter(email = phoneUser)  # qs=query set;ma asiur ca email ul e unic
+    #     if qs.exists():
+    #         raise ValidationError(
+    #             _('Phone number already used!'),  # fiind clean pe field, mesajul apare deasupra fieldului
+    #             code = 'err1',
+    #             params = {'value': '42'},
+    #             )
+    #     return (phoneUser)
+
+
+
+
 #
 # class RegisterForm(forms.Form):
 #     # folosesc widgets pt stilizare fields

@@ -1,7 +1,7 @@
 import bleach
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
+from accounts.models import CustomUser as User
 from django.contrib.auth.hashers import BCryptSHA256PasswordHasher
 from .crypto import utils_functions
 import datetime
@@ -22,12 +22,13 @@ class Election(models.Model):
 
     result_released_at = models.DateTimeField(auto_now_add = False, default = None, null = True)
     voters_hash = models.CharField(max_length = 100, null = True)
-    public_key = models.CharField(max_length = 200, null = True)
+
+    public_key = models.CharField(max_length = 200, null = True)#prin ElGamal
     private_key = models.CharField(max_length = 200, null = True)
 
     # tallying_starts_at = models.DateTimeField(auto_now_add = False, default = None, null = True)
-    encrypted_tally=models.CharField(max_length = 200, null = True)
-    result=models.CharField(max_length = 50, null = True)
+    # encrypted_tally=models.CharField(max_length = 200, null = True)
+    # result=models.CharField(max_length = 50, null = True)
 
     def __str__(self): #aceasta functie exista pt fiecare obiect, deci ii fac override aici
         return self.election_title
@@ -76,14 +77,14 @@ class Election(models.Model):
 
     @property
     def num_voters(self):
-      return self.voter_set.count()
-
-    @property
-    def encrypted_tally_hash(self):
-        if not self.encrypted_tally:
-            return None
-
-        return utils_functions.hash_b64(self.encrypted_tally)
+        return self.voter_set.count()
+    #
+    # @property
+    # def encrypted_tally_hash(self):
+    #     if not self.encrypted_tally:
+    #         return None
+    #
+    #     return utils_functions.hash_b64(self.encrypted_tally)
 
     @property
     def description_bleached(self):
@@ -122,27 +123,27 @@ class Election(models.Model):
     #
     #     return issues
 
-    def ready_for_tallying(self):
-        return datetime.datetime.now() >= self.tallying_starts_at
+    # def ready_for_tallying(self):
+    #     return datetime.datetime.now() >= self.tallying_starts_at
 
-    def compute_tally(self):
-        """
-        tally the election, assuming votes already verified
-        """
-        tally = self.init_tally()
-        for voter in self.voter_set.exclude(vote = None):
-            tally.add_vote(voter.vote, verify_p = False)
-
-        self.encrypted_tally = tally
-        self.save()
+    # def compute_tally(self):
+    #     """
+    #     tally the election, assuming votes already verified
+    #     """
+    #     tally = self.init_tally()
+    #     for voter in self.voter_set.exclude(vote = None):
+    #         tally.add_vote(voter.vote, verify_p = False)
+    #
+    #     self.encrypted_tally = tally
+    #     self.save()
 
     # def init_tally(self):
     #     # FIXME: create the right kind of tally
     #     from helios.workflows import homomorphic
     #     return homomorphic.Tally(election = self)
-
-    def ready_for_decryption(self):
-        return self.encrypted_tally != None
+    #
+    # def ready_for_decryption(self):
+    #     return self.encrypted_tally != None
 
     # def ready_for_decryption_combination(self):
     #     """
@@ -212,35 +213,28 @@ class Election(models.Model):
     def has_helios_trustee(self):
         return self.get_helios_trustee() != None
 
-    def helios_trustee_decrypt(self):
-        tally = self.encrypted_tally
-        tally.init_election(self)
-
-        trustee = self.get_helios_trustee()
-        factors, proof = tally.decryption_factors_and_proofs(trustee.secret_key)
-
-        trustee.decryption_factors = factors
-        trustee.decryption_proofs = proof
-        trustee.save()
-
-    # @property
-    # def winner(self):
+    # def helios_trustee_decrypt(self):
+    #     tally = self.encrypted_tally
+    #     tally.init_election(self)
     #
+    #     trustee = self.get_helios_trustee()
+    #     factors, proof = tally.decryption_factors_and_proofs(trustee.secret_key)
+    #
+    #     trustee.decryption_factors = factors
+    #     trustee.decryption_proofs = proof
+    #     trustee.save()
 
 
-# class Voter(models.Model):
-#     CNP= models.CharField('CNP',min_length=13,max_length = 13, null = False)
-#     phone= models.CharField('Phone',min_length=10,max_length = 10, null = False)
-#     #voter_id = models.CharField(max_length = 50, null = False) #id criptat al votantului
-#     election = models.ForeignKey(Election, on_delete = models.CASCADE)
-#     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     voter_login_code = models.CharField(max_length = 100, null = True) #cod primit prin care se logheaza
-#     vote_hash = models.CharField(max_length = 100, null = True)
-#     cast_at = models.DateTimeField(auto_now_add = False, null = True)
-#     #voter_email = models.CharField(max_length = 250, null = True)
-#     vote_hash = models.CharField(max_length = 100, null=True)
-#     user = models.ForeignKey('helios_auth.User', null = True, on_delete = models.CASCADE)
-#
+
+class Voter(models.Model):
+
+    election = models.ForeignKey(Election, on_delete = models.CASCADE)
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, null = True, on_delete = models.CASCADE)
+    #     voter_login_code = models.CharField(max_length = 100, null = True) #cod primit prin care se logheaza
+    vote_hash = models.CharField(max_length = 100, null = True)
+    cast_at = models.DateTimeField(auto_now_add = False, null = True)
+
 #     @property
 #     def get_user(self):
 #         return User.objects.filter(email=self.voter_email)
@@ -285,9 +279,9 @@ class Choice(models.Model):#1 Choice apartine unei singure Election
 
 
 
-class Vote(models.Model):#ca un user sa NU poata vota de mai multe ori
-    #models.PROTECT = daca sterg P(parinte), iar acesta are copii, nu il pot sterge (pe P)
-    user=models.ForeignKey(User,on_delete = models.CASCADE)#sterg User=> sterg toate Votes asociate
+class CastVote(models.Model):#ca un user sa NU poata vota de mai multe ori
+#models.PROTECT = daca sterg P(parinte), iar acesta are copii, nu il pot sterge (pe P)
+    voter=models.ForeignKey(Voter,on_delete = models.CASCADE)#sterg User=> sterg toate Votes asociate
     election=models.ForeignKey(Election,on_delete = models.CASCADE)#sterg Election=> sterg toate Votes asociate
     choice=models.ForeignKey(Choice,on_delete = models.CASCADE)#sterg Choice=> sterg toate Votes asociate
 
@@ -311,7 +305,7 @@ class Vote(models.Model):#ca un user sa NU poata vota de mai multe ori
         length = 8
         while True:
             vote_tinyhash = safe_hash[:length]
-            if Vote.objects.filter(vote_tinyhash = vote_tinyhash).count() == 0:
+            if CastVote.objects.filter(vote_tinyhash = vote_tinyhash).count() == 0:
                 break
             length += 1
 
@@ -325,19 +319,19 @@ class Vote(models.Model):#ca un user sa NU poata vota de mai multe ori
         if not self.vote_tinyhash:
             self.set_tinyhash()
 
-        super(Vote, self).save(*args, **kwargs)
+        super(CastVote, self).save(*args, **kwargs)
 
 
 class AuditedBallot(models.Model):
 
-  election = models.ForeignKey(Election, on_delete=models.CASCADE)
-  raw_vote = models.TextField(null=True)
-  vote_hash = models.CharField(max_length=100, null=True)
-  added_at = models.DateTimeField(auto_now_add=True, null=True)
+    election = models.ForeignKey(Election, on_delete=models.CASCADE)
+    raw_vote = models.TextField(null=True)
+    vote_hash = models.CharField(max_length=100, null=True)
+    added_at = models.DateTimeField(auto_now_add=True, null=True)
 
-  # @classmethod
-  # def get(cls, election, vote_hash):
-  #     return cls.objects.get(election = election, vote_hash = vote_hash)
+    # @classmethod
+    # def get(cls, election, vote_hash):
+    #     return cls.objects.get(election = election, vote_hash = vote_hash)
 
 
 class Trustee(models.Model):
@@ -360,7 +354,7 @@ class Trustee(models.Model):
 
     # proof of knowledge of secret key
     pok = models.CharField(max_length = 200,null=True)
-        #LDObjectField(type_hint = 'legacy/DLogProof',null = True)
+    #LDObjectField(type_hint = 'legacy/DLogProof',null = True)
 
     # decryption factors
     # decryption_factors = LDObjectField(type_hint = datatypes.arrayOf(datatypes.arrayOf('core/BigInteger')),

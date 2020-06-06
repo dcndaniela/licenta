@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
-from polls.models import Election, Choice, Vote
+from polls.models import Election, Choice, CastVote
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
 from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
@@ -13,14 +13,6 @@ from polls.forms import ElectionForm, EditElectionForm, ChoiceForm
 import uuid
 
 # !!! Ce trimit in context este vizibil in template(.html) !!!!!
-
-
-
-
-
-
-
-
 
 
 @login_required
@@ -65,6 +57,11 @@ def IndexView(request):
 
 @login_required
 def AddElectionView(request):
+    if not request.user.is_staff: #doar cei din stuff pot crea o noua Election
+        messages.error(request, 'You are not allowed to add an election!',
+                         extra_tags = 'alert alert-danger alert-dismissible fade show')
+        return redirect('polls:index')
+
     if request.method =="POST":
         form=ElectionForm(request.POST)
         if form.is_valid(): #in documentatiela forms-> save method
@@ -93,8 +90,10 @@ def AddElectionView(request):
 @login_required()
 def EditElectionView(request,poll_id):
     poll=get_object_or_404(Election,id=poll_id)
-    if request.user!=poll.owner:
-        return redirect ('accounts:login')
+    if request.user != poll.owner or (not request.user.is_staff):
+        messages.error(request, 'You are not allowed to edit this election!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
+        return redirect('polls:index')
 
     if request.method=="POST":
         form= EditElectionForm(request.POST,instance = poll)
@@ -113,14 +112,14 @@ def EditElectionView(request,poll_id):
 @login_required
 def DeleteElectionView(request, poll_id):
     poll = get_object_or_404(Election, id = poll_id)
-    if request.user != poll.owner:
-        return redirect('accounts:login')
+    if request.user != poll.owner or (not request.user.is_staff):
+        messages.error(request, 'You are not allowed to delete this election!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
+        return redirect('polls:index')
 
     if request.method == "POST":
         poll.delete()
-        messages.success(
-            request,
-            'Election deleted successfully',
+        messages.success(request,'Election deleted successfully',
             extra_tags = 'alert alert-success alert-dismissible fade show'
             )
         return redirect('polls:index')
@@ -130,8 +129,10 @@ def DeleteElectionView(request, poll_id):
 @login_required
 def AddChoiceView(request, poll_id):
     poll=get_object_or_404(Election,id=poll_id)
-    if request.user!=poll.owner:
-        return redirect ('accounts:login')
+    if request.user != poll.owner or (not request.user.is_staff):
+        messages.error(request, 'You are not allowed to add a choice!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
+        return redirect('polls:index')
 
     if request.method=="POST":
         form= ChoiceForm(request.POST)
@@ -151,8 +152,10 @@ def AddChoiceView(request, poll_id):
 def EditChoiceView(request,choice_id):
     choice=get_object_or_404(Choice,id=choice_id)
     poll=get_object_or_404(Election,id=choice.election.id)
-    if request.user!=poll.owner:
-        return redirect ('accounts:login')
+    if request.user != poll.owner or (not request.user.is_staff):
+        messages.error(request, 'You are not allowed to edit this choice!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
+        return redirect('polls:index')
 
     if request.method=="POST":
         form= ChoiceForm(request.POST,instance = choice)
@@ -171,20 +174,19 @@ def EditChoiceView(request,choice_id):
 def DeleteChoiceView(request,choice_id):
     choice = get_object_or_404(Choice, id = choice_id)
     poll = get_object_or_404(Election, id = choice.election.id)
-    if request.user != poll.owner:
-        return redirect('accounts:login')
+    if request.user != poll.owner or (not request.user.is_staff):
+        messages.error(request, 'You are not allowed to delete tis choice!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
+        return redirect('polls:index')
 
     if request.method == "POST":
         choice.delete()
-        messages.success(
-        request,
-        'Choice deleted successfully',
+        messages.success(request,'Choice deleted successfully',
         extra_tags = 'alert alert-success alert-dismissible fade show'
         )
         return redirect('polls:index')
         #return redirect('polls:edit', choice_id=choice.id)
     return render(request, 'polls/delete_choice.html', {'choice': choice})
-
 
 
 @login_required
@@ -207,7 +209,8 @@ def ResultsView(request,poll_id):
     poll = get_object_or_404(Election, id = poll_id)
 
     if not poll.can_see_results:
-        messages.error(request, 'Election is not finished! You can not see the results!')
+        messages.error(request, 'Election is not finished! You can not see the results!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
 
     user_can_vote = poll.user_can_vote(request.user)
@@ -221,7 +224,8 @@ def vote(request, poll_id):
     election = get_object_or_404(Election, pk = poll_id)
 
     if not election.user_can_vote(request.user):
-        messages.error(request, 'You have already voted on this election!')
+        messages.error(request, 'You have already voted on this election!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:detail', poll_id = poll_id)
 
     choice_id=request.POST.get('choice')
@@ -229,13 +233,14 @@ def vote(request, poll_id):
         #user_uuid=str(uuid.uuid4())
         cast_at=timezone.now()
         choice=Choice.objects.get(id=choice_id)
-        new_vote=Vote(user=request.user, election=election, choice=choice,cast_at=cast_at)
+        new_vote=CastVote(user=request.user, election=election, choice=choice,cast_at=cast_at)
         new_vote.save()
         print(choice)
         #choice.votes+=1
         #choice.save()
     else:
-        messages.error(request,'You must select a choice')
+        messages.error(request,'You must select a choice',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
         #return redirect('polls:detail', poll_id = poll_id)
         return redirect('polls:detail', poll_id = poll_id)
     #return redirect('polls:results', poll_id = poll_id)

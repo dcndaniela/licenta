@@ -31,7 +31,8 @@ INSTALLED_APPS = [
     'polls',
     'django.contrib.staticfiles',
 ]
-#AUTH_USER_MODEL = 'users.CustomUser'
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

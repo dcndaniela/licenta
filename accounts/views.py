@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.urls import reverse
 from . forms import RegisterForm
-from django.contrib.auth.models import User
+from accounts.models import CustomUser as User
 from django.contrib.auth.decorators import login_required
 
 # Create your views here.
@@ -22,7 +22,8 @@ def LoginView(request):
             #return HttpResponseRedirect(reverse('polls:home')) #home= name dat in urls din polls
             return redirect('polls:home')  # home= name dat in urls din polls
         else:
-            messages.error(request, 'Bad username or password')
+            messages.error(request, 'Bad username or password',
+                           extra_tags = 'alert alert-danger alert-dismissible fade show')
     return render(request, 'accounts/login.html',{}) # {}= dictionary
 
 @login_required     #folosesc acest decorator in loc sa implementez pentru fiecare
@@ -38,11 +39,12 @@ def RegisterView(request):
         form=RegisterForm(request.POST)
         if form.is_valid():# is_valid apeleaza automat clean()
             #print(form.cleaned_data) #cleaned_data este un dictionary(key-value); merge doar daca am is_valid() inainte
-            usern= form.cleaned_data['username']
+            cnpu= form.cleaned_data['cnp']
             passw=form.cleaned_data['password1'] #cleaned_data este un dictionary
-            emailn=form.cleaned_data['email']
-            user=User.objects.create_user(usern, email=emailn, password=passw) #creez User
-            messages.success(request, 'Thank you for registering {}'.format(user.username))
+            phoneu=form.cleaned_data['phone']
+            user=User.objects.create_user(cnpu, phone=phoneu, password=passw) #creez User
+            messages.success(request, 'Thank you for registering {}'.format(user.username),
+                             extra_tags = 'alert alert-success alert-dismissible fade show')
             #return HttpResponseRedirect(reverse('accounts:login'))
             return redirect('accounts:login')
             #print('User nou creat!')
