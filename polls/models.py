@@ -6,54 +6,68 @@ from django.contrib.auth.hashers import BCryptSHA256PasswordHasher
 from .crypto import utils_functions
 import datetime
 import uuid
-
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class Election(models.Model):
-    owner=models.ForeignKey(User,on_delete = models.CASCADE, default = 1)
+    owner = models.ForeignKey(User, on_delete = models.CASCADE, default = 1)
     election_uuid = models.CharField(max_length = 50, null = False)
-    #election_uuid= models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
-    election_title= models.CharField('Election name',max_length=200, default = 'Set an election name')
-    election_content = models.CharField('Election content',max_length=200)
-    pub_date = models.DateTimeField('date published',default= timezone.now, blank=True)
-    start_date= models.DateTimeField(null= True) #setez default
-    end_date= models.DateTimeField(null= True)
-    isActive= models.BooleanField('PUBLISH',default = False) #devine True cand va fi facuta public
+    # election_uuid= models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+    election_title = models.CharField('Election name', max_length = 200, default = 'Set an election name')
+    election_content = models.CharField('Election content', max_length = 200)
+    pub_date = models.DateTimeField('date published', default = timezone.now, blank = True)
+    start_date = models.DateTimeField(null = True)  # setez default
+    end_date = models.DateTimeField(null = True)
+    isActive = models.BooleanField('PUBLISH', default = False)  # devine True cand va fi facuta public
 
     result_released_at = models.DateTimeField(auto_now_add = False, default = None, null = True)
     voters_hash = models.CharField(max_length = 100, null = True)
 
-    public_key = models.CharField(max_length = 200, null = True)#prin ElGamal
+    public_key = models.CharField(max_length = 200, null = True)  # prin ElGamal
     private_key = models.CharField(max_length = 200, null = True)
 
     # tallying_starts_at = models.DateTimeField(auto_now_add = False, default = None, null = True)
     # encrypted_tally=models.CharField(max_length = 200, null = True)
     # result=models.CharField(max_length = 50, null = True)
 
-    def __str__(self): #aceasta functie exista pt fiecare obiect, deci ii fac override aici
+    def __str__(self):  # aceasta functie exista pt fiecare obiect, deci ii fac override aici
         return self.election_title
 
     @property
-    def can_see_results(self):#rezultatele se afiseaza dupa ce s-a incheiat perioada de vot
+    def can_see_results(self):  # rezultatele se afiseaza dupa ce s-a incheiat perioada de vot
         if self.end_date <= timezone.now():
             return True
         return False
 
-    def user_can_vote(self,user):
-        #returneaza True daca userul NU a votat inca
-        user_votes=user.vote_set.all()
-        qs=user_votes.filter(election=self)
-        if qs.exists():
+    @property
+    def has_not_started(self):
+        present=timezone.now()
+        #poate fi modificata daca Election nu a inceput
+        if (self.start_date<=present and present<=self.end_date):
             return False
         return True
 
-    @property #ca sa pot apela num_votes-proprietate, in loc de num_votes() -functie
+    #@property
+    def user_can_vote(self, user):
+        # returneaza True daca userul NU a votat inca
+        voter=Voter.objects.filter(user=user).filter(election=self)
+        #voter2=voter.filter(election=self)
+        print(voter)
+        #user_votes = Vote.objects.filter(voter=voter)
+        #qs = user_votes.filter(election = self)
+        #print ('aici este ')
+        #print(qs)
+        if voter.exists():
+            return False
+        return True
+
+    @property  # ca sa pot apela num_votes-proprietate, in loc de num_votes() -functie
     #astfel o pot apela in templates (html)
     def num_votes(self):
         return self.vote_set.count()
 
     def get_results_dict(self):
-        #returneaza o lista de obiecte de forma
+        # returneaza o lista de obiecte de forma
         # [
         #     pt fiecare choice din aceasta Election
         #     {
@@ -62,22 +76,25 @@ class Election(models.Model):
         #         'percentage': num_votes/ election.num_votes *100 (voturi primite/voturi totale *100)
         #         }
         #     ]
-        res=[]
-        #self= Election ( aka pointerul this)
-        for choice in self.choice_set.all(): #parinte acceseaza infos din copil
-            d={}
-            d['text']=choice.choice_text
-            d['num_votes']=choice.num_votes
+        res = []
+        # self= Election ( aka pointerul this)
+        for choice in self.choice_set.all():  # parinte acceseaza infos din copil
+            d = {}
+            d['text'] = choice.choice_text
+            d['num_votes'] = choice.num_votes
             if not self.num_votes:
                 d['percentage'] = 0
             else:
-                d['percentage']=choice.num_votes/self.num_votes *100
+                perc = choice.num_votes / self.num_votes * 100
+                d['percentage'] = float("{:.2f}".format(perc))
             res.append(d)
+        print (res)
         return res
 
     @property
     def num_voters(self):
         return self.voter_set.count()
+
     #
     # @property
     # def encrypted_tally_hash(self):
@@ -225,15 +242,14 @@ class Election(models.Model):
     #     trustee.save()
 
 
-
 class Voter(models.Model):
-
     election = models.ForeignKey(Election, on_delete = models.CASCADE)
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
     user = models.ForeignKey(User, null = True, on_delete = models.CASCADE)
     #     voter_login_code = models.CharField(max_length = 100, null = True) #cod primit prin care se logheaza
     vote_hash = models.CharField(max_length = 100, null = True)
     cast_at = models.DateTimeField(auto_now_add = False, null = True)
+
 
 #     @property
 #     def get_user(self):
@@ -258,76 +274,74 @@ class Voter(models.Model):
 #
 #         self.voter_login_code = utils_functions.random_string(length,
 #                                                               alphabet = 'abcdefghjkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789')
-#
-#
 
 
-class Choice(models.Model):#1 Choice apartine unei singure Election
-    election = models.ForeignKey(Election, on_delete=models.CASCADE)#sterg Election => se sterg toate Choice pe care le are
-    choice_text = models.CharField(max_length=200)
-    #votes = models.IntegerField(default=0)
+class Choice(models.Model):  # 1 Choice apartine unei singure Election
+    election = models.ForeignKey(Election,
+                                 on_delete = models.CASCADE)  # sterg Election => se sterg toate Choice pe care le are
+    choice_text = models.CharField(max_length = 200)
+    # votes = models.IntegerField(default=0)
     choice_hash = models.CharField(max_length = 100, null = True, unique = True)
     # hash scurt pe care sa il pun in url
     choice_tinyhash = models.CharField(max_length = 50, null = True, unique = True)
-    #voter = models.ForeignKey(Voter, on_delete = models.CASCADE)
+
+    # voter = models.ForeignKey(Voter, on_delete = models.CASCADE)
     def __str__(self):
         return self.choice_text
 
     @property
     def num_votes(self):
-        return self.vote_set.count()#nr de voturi primite de aceasta choice
+        return self.vote_set.count()  # nr de voturi primite de aceasta choice
 
 
+class Vote(models.Model):  # ca un user sa NU poata vota de mai multe ori
+    # models.PROTECT = daca sterg P(parinte), iar acesta are copii, nu il pot sterge (pe P)
+    voter = models.OneToOneField(Voter, on_delete = models.CASCADE)  # sterg User=> sterg toate Votes asociate
+    election = models.ForeignKey(Election, on_delete = models.CASCADE)  # sterg Election=> sterg toate Votes asociate
+    choice = models.ForeignKey(Choice, on_delete = models.CASCADE)  # sterg Choice=> sterg toate Votes asociate
 
-class CastVote(models.Model):#ca un user sa NU poata vota de mai multe ori
-#models.PROTECT = daca sterg P(parinte), iar acesta are copii, nu il pot sterge (pe P)
-    voter=models.ForeignKey(Voter,on_delete = models.CASCADE)#sterg User=> sterg toate Votes asociate
-    election=models.ForeignKey(Election,on_delete = models.CASCADE)#sterg Election=> sterg toate Votes asociate
-    choice=models.ForeignKey(Choice,on_delete = models.CASCADE)#sterg Choice=> sterg toate Votes asociate
-
-    vote_hash = models.CharField(max_length = 100, null=True)
+    vote_hash = models.CharField(max_length = 100, null = True)
     vote_tinyhash = models.CharField(max_length = 50, null = True, unique = True)
-    cast_at = models.DateTimeField(auto_now_add = True, null=True)
+    cast_at = models.DateTimeField(auto_now_add = True, null = True)
 
     verified_at = models.DateTimeField(null = True)
     invalidated_at = models.DateTimeField(null = True)
-    #uuid = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
-    #user_uuid = models.CharField(max_length = 50)#user uuid
+    # uuid = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+    # user_uuid = models.CharField(max_length = 50)#user uuid
 
-    def set_tinyhash(self):
-        """
-        find a tiny version of the hash for a URL slug.
-        """
-        safe_hash = self.vote_hash
-        for c in ['/', '+']:
-            safe_hash = safe_hash.replace(c, '')
+    # def set_tinyhash(self):
+    #     """
+    #     find a tiny version of the hash for a URL slug.
+    #     """
+    #     safe_hash = self.vote_hash
+    #     for c in ['/', '+']:
+    #         safe_hash = safe_hash.replace(c, '')
+    #
+    #     length = 8
+    #     while True:
+    #         vote_tinyhash = safe_hash[:length]
+    #         if Vote.objects.filter(vote_tinyhash = vote_tinyhash).count() == 0:
+    #             break
+    #         length += 1
+    #
+    #     self.vote_tinyhash = vote_tinyhash
 
-        length = 8
-        while True:
-            vote_tinyhash = safe_hash[:length]
-            if CastVote.objects.filter(vote_tinyhash = vote_tinyhash).count() == 0:
-                break
-            length += 1
-
-        self.vote_tinyhash = vote_tinyhash
-
-    def save(self, *args, **kwargs):
-        """
-        override this just to get a hook
-        """
-        # not saved yet? then we generate a tiny hash
-        if not self.vote_tinyhash:
-            self.set_tinyhash()
-
-        super(CastVote, self).save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     """
+    #     override this just to get a hook
+    #     """
+    #     # not saved yet? then we generate a tiny hash
+    #     if not self.vote_tinyhash:
+    #         self.set_tinyhash()
+    #
+    #     super(Vote, self).save(*args, **kwargs)
 
 
 class AuditedBallot(models.Model):
-
-    election = models.ForeignKey(Election, on_delete=models.CASCADE)
-    raw_vote = models.TextField(null=True)
-    vote_hash = models.CharField(max_length=100, null=True)
-    added_at = models.DateTimeField(auto_now_add=True, null=True)
+    election = models.ForeignKey(Election, on_delete = models.CASCADE)
+    raw_vote = models.TextField(null = True)
+    vote_hash = models.CharField(max_length = 100, null = True)
+    added_at = models.DateTimeField(auto_now_add = True, null = True)
 
     # @classmethod
     # def get(cls, election, vote_hash):
@@ -337,24 +351,25 @@ class AuditedBallot(models.Model):
 class Trustee(models.Model):
     election = models.ForeignKey(Election, on_delete = models.CASCADE)
 
-    uuid = models.CharField(max_length = 50, null=True)
-    name = models.CharField(max_length = 200, null=True)
-    secret = models.CharField(max_length = 100,null=True)
+    uuid = models.CharField(max_length = 50, null = True)
+    name = models.CharField(max_length = 200, null = True)
+    secret = models.CharField(max_length = 100, null = True)
 
     # public key
-    public_key = models.CharField(max_length = 200,null=True)
-    #LDObjectField(type_hint = 'legacy/EGPublicKey',null = True)
-    public_key_hash = models.CharField(max_length = 100,null=True)
+    public_key = models.CharField(max_length = 200, null = True)
+    # LDObjectField(type_hint = 'legacy/EGPublicKey',null = True)
+    public_key_hash = models.CharField(max_length = 100, null = True)
 
     # secret key
     # if the secret key is present, this means
     # Helios is playing the role of the trustee.
-    secret_key = models.CharField(max_length = 200,null=True)
-    #LDObjectField(type_hint = 'legacy/EGSecretKey',null = True)
+    secret_key = models.CharField(max_length = 200, null = True)
+    # LDObjectField(type_hint = 'legacy/EGSecretKey',null = True)
 
     # proof of knowledge of secret key
-    pok = models.CharField(max_length = 200,null=True)
-    #LDObjectField(type_hint = 'legacy/DLogProof',null = True)
+    pok = models.CharField(max_length = 200, null = True)
+
+    # LDObjectField(type_hint = 'legacy/DLogProof',null = True)
 
     # decryption factors
     # decryption_factors = LDObjectField(type_hint = datatypes.arrayOf(datatypes.arrayOf('core/BigInteger')),
@@ -396,7 +411,6 @@ class Trustee(models.Model):
         except cls.DoesNotExist:
             return None
 
-
     # def verify_decryption_proofs(self):
     #     """
     #     verify that the decryption proofs match the tally for the election
@@ -405,4 +419,3 @@ class Trustee(models.Model):
     #     return self.election.encrypted_tally.verify_decryption_proofs(self.decryption_factors, self.decryption_proofs,
     #                                                                   self.public_key,
     #                                                                   algs.EG_fiatshamir_challenge_generator)
-

@@ -1,11 +1,11 @@
 {% extends 'polls/base.html' %} <!--includ base.html -->
 
 
-
 {% block main_content %}
 
 <div class="container">
-    <h1 class="text-center">Welcome to poll list </h1>
+    <h1 class="text-center">Welcome to elections list </h1>
+    <br>
     <div class="row">
         <div class="col-sm-8 offset-sm-2">
 
@@ -28,17 +28,17 @@
 <!-- pot pune orcie in loc de =True pt ca practic verific daca se afla in dictionary(adica daca a fost apasat)-->
                 A-Z  <!-- href="?title=True" ca sa fac btn-warning -->
             </a>
-
+        {%if is_allowed %} <!-- doar staff ul poate crea Elections -->
             <a class="btn btn-primary" href="{% url 'polls:add' %}" style="margin-bottom: 5px">
                 Add
                 <i class="fa fa-plus"></i> <!-- + este luat din fontawesome.com -> icons -->
             </a>
-
+        {% endif%}
             <ul class="list-group">
                 {%for poll in polls%}
                            <li class="list-group-item " >
                                <a  href="{%url 'polls:detail' poll.id %}"><strong>{{poll}} </strong></a>
-                               {% if request.user == poll.owner %}
+                               {% if request.user == poll.owner and request.user.is_staff and poll.has_not_started %}
                                       <a class="float-right" href="{%url 'polls:edit' poll.id %}">
                                       <i aria-hidden="true" class="fa fa-pencil"></i></a>
                                {% endif %}

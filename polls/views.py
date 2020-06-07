@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
-from polls.models import Election, Choice, CastVote
+from polls.models import Election, Choice, Vote, Voter
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
 from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
@@ -21,15 +21,16 @@ def HomeView(request):
 
 @login_required
 def IndexView(request):
+    is_allowed = request.user.is_staff
     searchContent=""#ce contine initial search-ul
 
-    # cele activate care au start_date inainte de prezentul meu
-    polls=Election.objects.filter(isActive=True).filter(start_date__lte = timezone.now()).order_by('start_date')
-    # if request.user.is_superuser:
-    #     polls = Election.objects.all() #Admin ul vede toate polls
+    if request.user.is_staff:
+         polls = Election.objects.all().order_by('start_date') #Admin ul vede toate polls
+    else:
+        # cele activate care au start_date inainte de prezentul meu
+        polls = Election.objects.filter(isActive = True).filter(start_date__lte = timezone.now()).order_by('-start_date')
 
     if 'title' in request.GET:#ordonare crescator dupa titlu
-        #polls=polls.annotate(Count('vote')).order_by('-vote__count')
         polls=polls.order_by('election_title')
 
     if 'searchElection' in request.GET:
@@ -52,7 +53,7 @@ def IndexView(request):
     # ca sa pot pune in ruta &{{params}} in index.html
     params=get_dict_copy.pop('page',True) and get_dict_copy.urlencode()
 
-    context = {'polls': polls_paginated, 'params':params,'searchContent':searchContent}
+    context = {'polls': polls_paginated, 'params':params,'searchContent':searchContent,'is_allowed':is_allowed}
     return render(request, 'polls/index.html',context)
 
 @login_required
@@ -90,7 +91,7 @@ def AddElectionView(request):
 @login_required()
 def EditElectionView(request,poll_id):
     poll=get_object_or_404(Election,id=poll_id)
-    if request.user != poll.owner or (not request.user.is_staff):
+    if request.user != poll.owner or (not request.user.is_staff) or (not poll.has_not_started):
         messages.error(request, 'You are not allowed to edit this election!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
@@ -112,7 +113,7 @@ def EditElectionView(request,poll_id):
 @login_required
 def DeleteElectionView(request, poll_id):
     poll = get_object_or_404(Election, id = poll_id)
-    if request.user != poll.owner or (not request.user.is_staff):
+    if request.user != poll.owner or (not request.user.is_staff) or (not poll.has_not_started):
         messages.error(request, 'You are not allowed to delete this election!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
@@ -129,7 +130,7 @@ def DeleteElectionView(request, poll_id):
 @login_required
 def AddChoiceView(request, poll_id):
     poll=get_object_or_404(Election,id=poll_id)
-    if request.user != poll.owner or (not request.user.is_staff):
+    if request.user != poll.owner or (not request.user.is_staff) or (not poll.has_not_started):
         messages.error(request, 'You are not allowed to add a choice!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
@@ -152,7 +153,7 @@ def AddChoiceView(request, poll_id):
 def EditChoiceView(request,choice_id):
     choice=get_object_or_404(Choice,id=choice_id)
     poll=get_object_or_404(Election,id=choice.election.id)
-    if request.user != poll.owner or (not request.user.is_staff):
+    if request.user != poll.owner or (not request.user.is_staff) or (not poll.has_not_started):
         messages.error(request, 'You are not allowed to edit this choice!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
@@ -174,7 +175,7 @@ def EditChoiceView(request,choice_id):
 def DeleteChoiceView(request,choice_id):
     choice = get_object_or_404(Choice, id = choice_id)
     poll = get_object_or_404(Election, id = choice.election.id)
-    if request.user != poll.owner or (not request.user.is_staff):
+    if request.user != poll.owner or (not request.user.is_staff) or (not poll.has_not_started):
         messages.error(request, 'You are not allowed to delete tis choice!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
@@ -193,13 +194,14 @@ def DeleteChoiceView(request,choice_id):
 def DetailView(request,poll_id):
     poll = get_object_or_404(Election, id=poll_id)
 
-    user_can_vote=poll.user_can_vote(request.user)
+    #user_can_vote=poll.user_can_vote(request.user)
     # daca NU este activa sau inca nu a fost publicata, este vizibila doar pentru Admin
     if not poll.isActive or poll.start_date>timezone.now() :
         if not request.user.is_superuser:
             return redirect('polls:index')
 
-    context={'election': poll,'user_can_vote':user_can_vote}
+    #context={'election': poll,'user_can_vote':user_can_vote}
+    context = {'election': poll}
     return render(request, 'polls/detail.html', context)
 
 
@@ -213,7 +215,7 @@ def ResultsView(request,poll_id):
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
 
-    user_can_vote = poll.user_can_vote(request.user)
+    #user_can_vote = poll.user_can_vote(request.user)
     results=poll.get_results_dict()
     context = {'election': poll, 'results':results }
     return render(request, 'polls/results.html', context)
@@ -222,8 +224,17 @@ def ResultsView(request,poll_id):
 @login_required
 def vote(request, poll_id):
     election = get_object_or_404(Election, pk = poll_id)
+    if election.start_date>timezone.now():
+        messages.error(request, 'Election is not opened yet!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
+        return redirect('polls:index')
+    if election.end_date<timezone.now():
+        messages.error(request, 'Election is closed!You can not vote anymore!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
+        return redirect('polls:results', poll_id = poll_id)
 
-    if not election.user_can_vote(request.user):
+    user_can_vote=election.user_can_vote(request.user)
+    if not user_can_vote:
         messages.error(request, 'You have already voted on this election!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:detail', poll_id = poll_id)
@@ -233,15 +244,15 @@ def vote(request, poll_id):
         #user_uuid=str(uuid.uuid4())
         cast_at=timezone.now()
         choice=Choice.objects.get(id=choice_id)
-        new_vote=CastVote(user=request.user, election=election, choice=choice,cast_at=cast_at)
+        voter=Voter(election=election, user=request.user, vote_hash='hash_vote',cast_at=cast_at)
+        voter.save()
+        new_vote=Vote(voter=voter, election=election, choice=choice,cast_at=cast_at)
         new_vote.save()
-        print(choice)
-        #choice.votes+=1
-        #choice.save()
+        #print(choice)
+
     else:
         messages.error(request,'You must select a choice',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
-        #return redirect('polls:detail', poll_id = poll_id)
         return redirect('polls:detail', poll_id = poll_id)
-    #return redirect('polls:results', poll_id = poll_id)
-    return redirect('polls:index')
+    #return render(request,'polls:index',{'user_can_vote':user_can_vote})
+    return redirect("polls:index")

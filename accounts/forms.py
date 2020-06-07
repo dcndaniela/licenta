@@ -21,64 +21,6 @@ class RegisterForm(forms.Form):
     password2 = forms.CharField(label = 'Confirm Password', max_length = 100, min_length=8,
                                 widget=forms.PasswordInput(attrs={'class':'form-control'}))
 
-    # def clean_cnp(self):#clean pe field-ul email
-    #     cnpUser= self.cleaned_data['cnp']
-    #     qs= User.objects.filter(email=cnpUser) #qs=query set;ma asiur ca email ul e unic
-    #     if qs.exists():
-    #         raise ValidationError(
-    #             _('CNP already used!'),#fiind clean pe field, mesajul apare deasupra fieldului
-    #             code = 'err1',
-    #             params = {'value': '42'},
-    #             )
-    #     return(cnpUser)
-    #
-    # def clean_phone(self):  # clean pe field-ul email
-    #     phoneUser = self.cleaned_data['cnp']
-    #     qs = User.objects.filter(email = phoneUser)  # qs=query set;ma asiur ca email ul e unic
-    #     if qs.exists():
-    #         raise ValidationError(
-    #             _('Phone number already used!'),  # fiind clean pe field, mesajul apare deasupra fieldului
-    #             code = 'err1',
-    #             params = {'value': '42'},
-    #             )
-    #     return (phoneUser)
-
-
-
-
-#
-# class RegisterForm(forms.Form):
-#     # folosesc widgets pt stilizare fields
-#     cnp= forms.CharField(label='CNP', max_length=13, min_length=13,
-#                                widget=forms.TextInput(attrs={'class':'form-control'}))
-#     phone= forms.CharField('Phone',min_length=10,max_length = 10, null = False,
-#                         error_messages={'incomplete': 'Enter a phone number.'},
-#                         validators=[RegexValidator(r'^[0-9]+$', 'Enter a valid phone number.')],
-#                         widget=forms.TextInput(attrs={'class':'form-control'}))
-#     password1 = forms.CharField(label = 'Password', max_length = 100, min_length=8,
-#                                 widget=forms.PasswordInput(attrs={'class':'form-control'}))
-#     password2 = forms.CharField(label = 'Confirm Password', max_length = 100, min_length=8,
-#                                 widget=forms.PasswordInput(attrs={'class':'form-control'}))
-#
-#     def clean_cnp(self):#clean pe field-ul email
-#         cnpUser= self.cleaned_data['cnp']
-#         qs= User.objects.filter(cnp=cnpUser) #qs=query set;ma asiur ca email ul e unic
-#         if qs.exists():
-#             raise ValidationError(
-#                 _('CNP already used!'),#fiind clean pe field, mesajul apare deasupra fieldului
-#                 code = 'err1',
-#                 params = {'value': '42'},
-#                 )
-#         return(cnpUser)
-
-
-    #def clean_password2(self): #arunca eroare daca folseam password1(referentia password2 care se crea dupa validarea lui password1)
-      #  p1=self.cleaned_data['password1']
-      #  p2=self.cleaned_data['password2']
-      #  if p1 != p2:
-      #      raise ValidationError('Password2 does not match password1!')
-      #  return p2
-
 
     def clean(self): #clean pe form (asa trebuie sa fac at cand am 2 fields interdependente)
         cleaned_data=super().clean()

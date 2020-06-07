@@ -22,7 +22,7 @@ class ElectionForm(forms.ModelForm): #acest form il import in views.py
         model.start_date = forms.DateTimeField()
         model.end_date = forms.DateTimeField()
         widgets= {
-            'election_title':forms.Textarea(attrs = {"class":"form-control", "rows":3,"cols":20}),
+            'election_title':forms.Textarea(attrs = {"class":"form-control", "rows":2,"cols":10}),
            # 'start_date':DateInput(),
             'isActive':forms.CheckboxInput()
             }
