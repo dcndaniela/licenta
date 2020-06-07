@@ -15,13 +15,17 @@ class Election(models.Model):
     # election_uuid= models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
     election_title = models.CharField('Election name', max_length = 200, default = 'Set an election name')
     election_content = models.CharField('Election content', max_length = 200)
-    pub_date = models.DateTimeField('date published', default = timezone.now, blank = True)
+    pub_date = models.DateTimeField('date published', default = timezone.now, blank = True)#cand a fost creata
+    modified_at = models.DateTimeField(auto_now_add=True,null=True)
+
+    # encrypted_tally=models.CharField(max_length = 250, null = True)
+
     start_date = models.DateTimeField(null = True)  # setez default
     end_date = models.DateTimeField(null = True)
     isActive = models.BooleanField('PUBLISH', default = False)  # devine True cand va fi facuta public
 
+    result=models.CharField(max_length = 50, null = True)
     result_released_at = models.DateTimeField(auto_now_add = False, default = None, null = True)
-    voters_hash = models.CharField(max_length = 100, null = True)
 
     public_key = models.CharField(max_length = 200, null = True)  # prin ElGamal
     private_key = models.CharField(max_length = 200, null = True)
@@ -95,7 +99,7 @@ class Election(models.Model):
     def num_voters(self):
         return self.voter_set.count()
 
-    #
+
     # @property
     # def encrypted_tally_hash(self):
     #     if not self.encrypted_tally:
@@ -244,9 +248,9 @@ class Election(models.Model):
 
 class Voter(models.Model):
     election = models.ForeignKey(Election, on_delete = models.CASCADE)
-    uuid = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
     user = models.ForeignKey(User, null = True, on_delete = models.CASCADE)
-    #     voter_login_code = models.CharField(max_length = 100, null = True) #cod primit prin care se logheaza
+    uuid = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+    #voter_login_code = models.CharField(max_length = 100, null = True) #cod primit prin care se logheaza
     vote_hash = models.CharField(max_length = 100, null = True)
     cast_at = models.DateTimeField(auto_now_add = False, null = True)
 
@@ -259,14 +263,23 @@ class Voter(models.Model):
 #     def voter_id(self):
 #         return self.get_user().id
 #
-#     @property
-#     def voter_id_hash(self):
-#             #return hashlib.sha256(self.voter_id)
-#             ha=BCryptSHA256PasswordHasher.encode(self, self.voter_id,BCryptSHA256PasswordHasher.salt())
-#             #return BCryptSHA256PasswordHasher.encode(self, self.voter_id,BCryptSHA256PasswordHasher.salt())
-#             print('voter_id_hash= {}'.format(ha))
-#             return ha
-#
+    @property
+    def voter_id_hash(self):
+        if self.voter_login_id:
+            # for backwards compatibility with v3.0, and since it doesn't matter
+            # too much if we hash the email or the unique login ID here.
+            value_to_hash = self.voter_login_id
+        else:
+            value_to_hash = self.voter_id
+
+        try:
+            return utils_functions.hash_b64(value_to_hash)
+        except:
+            try:
+                return utils_functions.hash_b64(value_to_hash.encode('latin-1'))
+            except:
+                return utils_functions.hash_b64(value_to_hash.encode('utf-8'))
+
 #
 #     def generate_voter_login_code(self, length = 10):
 #         if self.voter_login_code:
@@ -281,9 +294,9 @@ class Choice(models.Model):  # 1 Choice apartine unei singure Election
                                  on_delete = models.CASCADE)  # sterg Election => se sterg toate Choice pe care le are
     choice_text = models.CharField(max_length = 200)
     # votes = models.IntegerField(default=0)
-    choice_hash = models.CharField(max_length = 100, null = True, unique = True)
+    #choice_hash = models.CharField(max_length = 100, null = True, unique = True)
     # hash scurt pe care sa il pun in url
-    choice_tinyhash = models.CharField(max_length = 50, null = True, unique = True)
+    #choice_tinyhash = models.CharField(max_length = 50, null = True, unique = True)
 
     # voter = models.ForeignKey(Voter, on_delete = models.CASCADE)
     def __str__(self):
@@ -309,22 +322,21 @@ class Vote(models.Model):  # ca un user sa NU poata vota de mai multe ori
     # uuid = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
     # user_uuid = models.CharField(max_length = 50)#user uuid
 
-    # def set_tinyhash(self):
-    #     """
-    #     find a tiny version of the hash for a URL slug.
-    #     """
-    #     safe_hash = self.vote_hash
-    #     for c in ['/', '+']:
-    #         safe_hash = safe_hash.replace(c, '')
-    #
-    #     length = 8
-    #     while True:
-    #         vote_tinyhash = safe_hash[:length]
-    #         if Vote.objects.filter(vote_tinyhash = vote_tinyhash).count() == 0:
-    #             break
-    #         length += 1
-    #
-    #     self.vote_tinyhash = vote_tinyhash
+    def set_tinyhash(self):
+        """
+        find a tiny version of the hash for a URL slug.
+        """
+        safe_hash = self.vote_hash
+        for c in ['/', '+']:
+            safe_hash = safe_hash.replace(c, '')
+
+        length = 8
+        while True:
+            vote_tinyhash = safe_hash[:length]
+            if Vote.objects.filter(vote_tinyhash = vote_tinyhash).count() == 0:
+                break
+            length += 1
+        self.vote_tinyhash = vote_tinyhash
 
     # def save(self, *args, **kwargs):
     #     """

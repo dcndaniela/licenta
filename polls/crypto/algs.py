@@ -8,12 +8,12 @@
 # """
 #
 # import math, hashlib, logging
-# from crypto import randpool, number
+# from polls.crypto import randpool, number
 #
 #
 # # some utilities
 # class Utils:
-#     RAND = randpool.RandomPool()
+#     #RAND = randpool.RandomPool()
 #
 #     @classmethod
 #     def random_seed(cls, data):
@@ -713,29 +713,29 @@
 #       'response': str(self.response)
 #     }
 #
-#   def verify(self, little_g, little_h, big_g, big_h, p, q, challenge_generator=None):
-#     """
-#     Verify a DH tuple proof
-#     """
-#     # check that A, B are in the correct group
-#     if not (pow(proof.commitment['A'],self.pk.q,self.pk.p)==1 and pow(proof.commitment['B'],self.pk.q,self.pk.p)==1):
-#       return False
+#   # def verify(self, little_g, little_h, big_g, big_h, p, q, challenge_generator=None):
+#   #   """
+#   #   Verify a DH tuple proof
+#   #   """
+#   #   # check that A, B are in the correct group
+#   #   if not (pow(proof.commitment['A'],self.pk.q,self.pk.p)==1 and pow(proof.commitment['B'],self.pk.q,self.pk.p)==1):
+#   #     return False
+#   #
+#   #   # check that little_g^response = A * big_g^challenge
+#   #   first_check = (pow(little_g, self.response, p) == ((pow(big_g, self.challenge, p) * self.commitment['A']) % p))
+#   #
+#   #   # check that little_h^response = B * big_h^challenge
+#   #   second_check = (pow(little_h, self.response, p) == ((pow(big_h, self.challenge, p) * self.commitment['B']) % p))
+#   #
+#   #   # check the challenge?
+#   #   third_check = True
+#   #
+#   #   if challenge_generator:
+#   #     third_check = (self.challenge == challenge_generator(self.commitment))
+#   #
+#   #   return (first_check and second_check and third_check)
 #
-#     # check that little_g^response = A * big_g^challenge
-#     first_check = (pow(little_g, self.response, p) == ((pow(big_g, self.challenge, p) * self.commitment['A']) % p))
-#
-#     # check that little_h^response = B * big_h^challenge
-#     second_check = (pow(little_h, self.response, p) == ((pow(big_h, self.challenge, p) * self.commitment['B']) % p))
-#
-#     # check the challenge?
-#     third_check = True
-#
-#     if challenge_generator:
-#       third_check = (self.challenge == challenge_generator(self.commitment))
-#
-#     return (first_check and second_check and third_check)
-#
-#   toJSONDict = to_dict
+#   #toJSONDict = to_dict
 #
 # class EGZKDisjunctiveProof:
 #   def __init__(self, proofs = None):

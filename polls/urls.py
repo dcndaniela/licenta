@@ -1,12 +1,12 @@
 from django.urls import path
-from . import views #  din folderul curent
 
+from polls import views
 
 app_name = 'polls'
 
 urlpatterns = [
     # ex: /polls/home
-    path('home/', views.HomeView, name='home'), #nu mai adauga nimic la ruta
+    #path('home/', views.HomeView, name='home'), #nu mai adauga nimic la ruta
 
     # ex: /polls/index
     path('index/', views.IndexView, name='index'),
