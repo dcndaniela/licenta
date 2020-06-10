@@ -8,15 +8,20 @@ import datetime
 import uuid
 from django.core.exceptions import ObjectDoesNotExist
 
+#
+# class PublicKey(models.model):
+
 
 class Election(models.Model):
     owner = models.ForeignKey(User, on_delete = models.CASCADE, default = 1)
-    election_uuid = models.CharField(max_length = 50, null = False)
+    election_uuid = models.CharField(max_length = 200, null = True, default=True)
     # election_uuid= models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
     election_title = models.CharField('Election name', max_length = 200, default = 'Set an election name')
     election_content = models.CharField('Election content', max_length = 200)
     pub_date = models.DateTimeField('date published', default = timezone.now, blank = True)#cand a fost creata
     modified_at = models.DateTimeField(auto_now_add=True,null=True)
+    election_hash=models.CharField(max_length = 200, null = True)
+    election_tinyhash = models.CharField(max_length = 50, null = True, unique = True)
 
     # encrypted_tally=models.CharField(max_length = 250, null = True)
 
@@ -27,8 +32,10 @@ class Election(models.Model):
     result=models.CharField(max_length = 50, null = True)
     result_released_at = models.DateTimeField(auto_now_add = False, default = None, null = True)
 
-    public_key = models.CharField(max_length = 200, null = True)  # prin ElGamal
-    private_key = models.CharField(max_length = 200, null = True)
+    public_key = models.IntegerField(default = 0) # prin ElGamal
+    private_key = models.IntegerField(default = 0)
+
+    #num_votes= models.PositiveIntegerField(default = 0)
 
     # tallying_starts_at = models.DateTimeField(auto_now_add = False, default = None, null = True)
     # encrypted_tally=models.CharField(max_length = 200, null = True)
@@ -92,7 +99,7 @@ class Election(models.Model):
                 perc = choice.num_votes / self.num_votes * 100
                 d['percentage'] = float("{:.2f}".format(perc))
             res.append(d)
-        print (res)
+        #print (res)
         return res
 
     @property
@@ -249,10 +256,11 @@ class Election(models.Model):
 class Voter(models.Model):
     election = models.ForeignKey(Election, on_delete = models.CASCADE)
     user = models.ForeignKey(User, null = True, on_delete = models.CASCADE)
-    uuid = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+    #uuid = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+    uuid=models.CharField(max_length = 200, null = True)
     #voter_login_code = models.CharField(max_length = 100, null = True) #cod primit prin care se logheaza
-    vote_hash = models.CharField(max_length = 100, null = True)
-    cast_at = models.DateTimeField(auto_now_add = False, null = True)
+    #vote_hash = models.CharField(max_length = 200, null = True)
+    #cast_at = models.DateTimeField(auto_now_add = False, null = True)
 
 
 #     @property
@@ -299,6 +307,7 @@ class Choice(models.Model):  # 1 Choice apartine unei singure Election
     #choice_tinyhash = models.CharField(max_length = 50, null = True, unique = True)
 
     # voter = models.ForeignKey(Voter, on_delete = models.CASCADE)
+
     def __str__(self):
         return self.choice_text
 
@@ -313,12 +322,18 @@ class Vote(models.Model):  # ca un user sa NU poata vota de mai multe ori
     election = models.ForeignKey(Election, on_delete = models.CASCADE)  # sterg Election=> sterg toate Votes asociate
     choice = models.ForeignKey(Choice, on_delete = models.CASCADE)  # sterg Choice=> sterg toate Votes asociate
 
-    vote_hash = models.CharField(max_length = 100, null = True)
+    vote_hash = models.CharField(max_length = 200, null = True)
     vote_tinyhash = models.CharField(max_length = 50, null = True, unique = True)
     cast_at = models.DateTimeField(auto_now_add = True, null = True)
 
     verified_at = models.DateTimeField(null = True)
     invalidated_at = models.DateTimeField(null = True)
+
+    alpha = models.IntegerField(default = 0)
+    beta = models.IntegerField(default = 0)
+
+    c1 = models.IntegerField(default=0)
+    c2 = models.IntegerField(default = 0)
     # uuid = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
     # user_uuid = models.CharField(max_length = 50)#user uuid
 
@@ -352,7 +367,7 @@ class Vote(models.Model):  # ca un user sa NU poata vota de mai multe ori
 class AuditedBallot(models.Model):
     election = models.ForeignKey(Election, on_delete = models.CASCADE)
     raw_vote = models.TextField(null = True)
-    vote_hash = models.CharField(max_length = 100, null = True)
+    vote_hash = models.CharField(max_length = 200, null = True)
     added_at = models.DateTimeField(auto_now_add = True, null = True)
 
     # @classmethod
@@ -408,13 +423,13 @@ class Trustee(models.Model):
     def get_by_election(cls, election):
         return cls.objects.filter(election = election)
 
-    @classmethod
-    def get_by_uuid(cls, uuid):
-        return cls.objects.get(uuid = uuid)
-
-    @classmethod
-    def get_by_election_and_uuid(cls, election, uuid):
-        return cls.objects.get(election = election, uuid = uuid)
+    # @classmethod
+    # def get_by_uuid(cls, uuid):
+    #     return cls.objects.get(uuid = uuid)
+    #
+    # @classmethod
+    # def get_by_election_and_uuid(cls, election, uuid):
+    #     return cls.objects.get(election = election, uuid = uuid)
 
     @classmethod
     def get_by_election_and_email(cls, election, email):

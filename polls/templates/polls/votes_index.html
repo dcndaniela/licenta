@@ -1,0 +1,67 @@
+{% extends 'polls/base.html' %} <!--includ base.html -->
+
+{% block main_content %}
+
+<div class="container">
+    <h2 class="text-center">All casted votes for election <a href="" style="color: rebeccapurple">{{poll.election_title}} </a></h2>
+    <br>
+    <div class="row">
+        <div class="col-sm-8 offset-sm-2">
+
+            {% if messages %}
+                   {% for message in messages %}
+                              <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
+                                  {{ message }}
+                                  <button aria-label="Close" class="close" data-dismiss="alert" type="button">
+                                      <span aria-hidden="true">&times;</span>
+                                    </button> <!-- adaug acest buton ca sa inchid mesajul de alerta -->
+                              </div>
+                   {% endfor %}
+            {% endif %}
+
+
+            <ul class="list-group">
+                           {%for ab in audited_ballots%}
+                                      <li class="list-group-item " style="background-color: lavender " >
+                                          <span style="color: darkcyan">Vote for: {{ab.raw_vote}}</span>
+                                          <p style="color: darkcyan">Vote hash: {{ab.vote_hash}}</p>
+                                          <span>Added at: {{ab.added_at}}</span>
+                                      </li>
+                           {%endfor%}
+            </ul>
+
+
+        </div>
+    </div>
+</div>
+
+
+
+<!-- pentru paginare:-->
+{% if audited_ballots.has_other_pages %}
+  <ul class="pagination">
+    {% if audited_ballots.has_previous %}
+<!--      pun &{{params}} pt ca toate paginile sa fie sortate alfabetic at cand este selectat A-Z-->
+      <li><a href="?page={{ audited_ballots.previous_page_number }}&{{params}}">&laquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&laquo;</span></li>
+    {% endif %}
+
+    {% for i in audited_ballots.paginator.page_range %}
+      {% if audited_ballots.number == i %}
+        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+      {% else %}
+        <li><a href="?page={{ i }}&{{params}}">{{ i }}</a></li>
+      {% endif %}
+    {% endfor %}
+
+    {% if audited_ballots.has_next %}
+      <li><a href="?page={{ audited_ballots.next_page_number }}&{{params}}">&raquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&raquo;</span></li>
+    {% endif %}
+  </ul>
+{% endif %}
+
+{% endblock %}
+

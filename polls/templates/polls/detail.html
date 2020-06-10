@@ -3,45 +3,58 @@
 
 
 {% block main_content %} <!--override lui main_content din base.html -->
+
 {% if messages %}
-                    {% for message in messages %}
-                               <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
-                                   {{ message }}
-                                   <button aria-label="Close" class="close" data-dismiss="alert" type="button">
-                                       <span aria-hidden="true">&times;</span>
-                                     </button> <!-- adaug acest buton ca sa inchid mesajul de alerta -->
-                               </div>
-                    {% endfor %}
-             {% endif %}
+      {% for message in messages %}
+                <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
+                        {{ message }}
+                         <button aria-label="Close" class="close" data-dismiss="alert" type="button">
+                         <span aria-hidden="true">&times;</span>
+                         </button> <!-- adaug acest buton ca sa inchid mesajul de alerta -->
+                </div>
+      {% endfor %}
 
+{% else %}
+<div class="alert alert-warning alert-dismissible fade show">
+    <strong>Warning!</strong> Once you press Vote, you can not reconsider your choice!
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+</div>
 
-<h1>{{ election.election_content }}</h1>
+{% endif %}
+<h2>{{ election.election_content }}</h2>
 <div class="container">
     <div class="row">
         <div class="col">
 
+            <form action="{% url 'polls:vote' election.id %}" method="post"> <!-- polls=namespace din urls, vote=namespace din polls.urls -->
+                {% csrf_token %}
+                {% for choice in election.choice_set.all %}<!-- forloop.counter = asociaza fiecarui buton cate 1 id -->
+                    <input id="choice{{ forloop.counter }}" name="choice" type="radio" value="{{ choice.id }}">
+                    <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label>
+                    <br>
+                {% endfor %}
+                <input %} %}disabled class="btn btn-success" endif if not type="submit" user_can_vote value="Vote" {% {%/>
+            </form>
+            <a href="{% url 'polls:index' %}"> <-Back to elections list</a>
+                        <p></p>
 
-<form action="{% url 'polls:vote' election.id %}" method="post"> <!-- polls=namespace din urls, vote=namespace din polls.urls -->
-{% csrf_token %}
-{% for choice in election.choice_set.all %}<!-- forloop.counter = asociaza fiecarui buton cate 1 id -->
-    <input id="choice{{ forloop.counter }}" name="choice" type="radio" value="{{ choice.id }}">
-    <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label>
-    <br>
-{% endfor %}
-<input %} %}disabled class="btn btn-success" endif if not type="submit" user_can_vote value="Vote" {% {%/>
-</form>
-<a href="{% url 'polls:index' %}"> <-Back to elections list</a>
+            <a href="{% url 'polls:votes_index' election.id %}" style="color: darkviolet" >
+              <i aria-hidden="true" class="fa fa-envelope"></i> <!-- + este luat din fontawesome.com -> icons -->
+               Casted Votes->
+            </a>
 
         </div>
     </div>
 </div>
 
-<button onclick="myFunction()">Click me!</button>
-<p id="demo"></p>
-<script>
-    function myFunction() {
-        document.getElementById("demo").innerHTML = "Hello Dear Visitor";
-    }
-</script>
+
+
+<!--<button onclick="myFunction()">Click me!</button>-->
+<!--<p id="demo"></p>-->
+<!--<script>-->
+<!--    function myFunction() {-->
+<!--        document.getElementById("demo").innerHTML = "Hello Dear Visitor";-->
+<!--    }-->
+<!--</script>-->
 
 {% endblock %}

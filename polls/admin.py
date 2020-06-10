@@ -10,6 +10,7 @@ admin.site.register(CustomUser)
 admin.site.register(AuditedBallot)
 admin.site.register(Vote)
 admin.site.register(Voter)
+admin.site.register(Choice)
 #admin.site.register(Choice)
 
 admin.site.site_header='Admin Dashboard'
@@ -35,6 +36,8 @@ class ElectionAdmin(admin.ModelAdmin): # admin.ModelAdmin = clasa din care moste
         'start_date',
         'end_date',
         'isActive',
+        'public_key',
+        'private_key',
         )
 
 #admin.site.register(User, electionAdmin)

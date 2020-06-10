@@ -5,8 +5,7 @@ from polls import views
 app_name = 'polls'
 
 urlpatterns = [
-    # ex: /polls/home
-    #path('home/', views.HomeView, name='home'), #nu mai adauga nimic la ruta
+#informatiile din ruta sunt pasate in View din views.py
 
     # ex: /polls/index
     path('index/', views.IndexView, name='index'),
@@ -25,7 +24,7 @@ urlpatterns = [
     path('add/', views.AddElectionView, name = 'add'),
 
     path('edit/<int:poll_id>/',views.EditElectionView,name='edit'),
-#informatiile din ruta sunt pasate in View din views.py
+
     path('delete/poll/<int:poll_id>/', views.DeleteElectionView, name='delete'),
 
     path('edit/<int:poll_id>/choice/add/',views.AddChoiceView, name="add_choice"),
@@ -33,5 +32,7 @@ urlpatterns = [
     path('edit/choice/<int:choice_id>/',views.EditChoiceView, name="edit_choice"),
 
     path('delete/choice/<int:choice_id>/', views.DeleteChoiceView, name='delete_choice'),
+
+    path('details/<int:poll_id>/allVotes', views.VotesIndexView, name='votes_index')
 
 ]

@@ -2,8 +2,10 @@
 
 
 {% block main_content %}
+<i aria-hidden="true" class="fa fa-user"></i>{{user_current}}
 
 <div class="container">
+
     <h1 class="text-center">Welcome to elections list </h1>
     <br>
     <div class="row">
@@ -11,7 +13,7 @@
 
             {% if messages %}
                    {% for message in messages %}
-                              <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
+                              <div class="{{ message.tags }}" endif if message.tags {% {%>
                                   {{ message }}
                                   <button aria-label="Close" class="close" data-dismiss="alert" type="button">
                                       <span aria-hidden="true">&times;</span>
@@ -47,6 +49,7 @@
                                <span style="color: darkcyan">From: <i>{{poll.start_date|date:"d M Y h:i A"}}</i>
                                                  To: <i>{{poll.end_date|date:"d M Y h:i A"}}</i>
                                </span>
+                               <p style="color: chocolate"> Last time modified: <i>{{poll.modified_at|date:"d M Y h:i A"}}</i></p>
                                {% if poll.can_see_results  %}
                                <a class="float-right" href="{%url 'polls:results' poll.id %}">
                                <i aria-hidden="true" class="fa fa-bar-chart"></i>Results</a>
