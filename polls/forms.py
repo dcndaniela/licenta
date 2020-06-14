@@ -2,6 +2,8 @@ from django import forms
 from polls.models import Election, Choice
 from django.contrib.admin import widgets
 from django.contrib.admin.widgets import AdminSplitDateTime
+from django.core.validators import MinLengthValidator
+from django.core.validators import RegexValidator
 
 
 class DateInput(forms.DateTimeField):
@@ -9,11 +11,17 @@ class DateInput(forms.DateTimeField):
 
 class ElectionForm(forms.ModelForm): #acest form il import in views.py
 #pentru ca folosesc ModelForm, pot declara extra fields (choices):
-    choice1 = forms.CharField(label = 'Choice1', max_length = 100, min_length = 3,
-                               widget = forms.TextInput(attrs = {'class': 'form-control'}))
+    choice1 = forms.CharField(label = 'Choice1', max_length = 100, min_length = 5,
+                               widget = forms.TextInput(attrs = {'class': 'form-control'}),
+                               validators =[MinLengthValidator(5, message ="Choice text should have at least 5 characters!" ),
+                                           RegexValidator(r'^[a-zA-Z0-9\s]+$', 'Enter a valid valid choice text!') ] )
 
-    choice2 = forms.CharField(label = 'Choice2', max_length = 100, min_length = 3,
-                               widget = forms.TextInput(attrs = {'class': 'form-control'}))
+    choice2 = forms.CharField(label = 'Choice2', max_length = 100, min_length = 5,
+                              widget = forms.TextInput(attrs = {'class': 'form-control'}),
+                              validators = [
+                                  MinLengthValidator(5, message = "Choice text should have at least 5 characters!"),
+                                  RegexValidator(r'^[a-zA-Z0-9\s]+$', 'Enter a valid valid choice text!')]
+                              )
 
     class Meta: #pt a defini datele actuale ale clasei
         model= Election
@@ -31,6 +39,7 @@ class ElectionForm(forms.ModelForm): #acest form il import in views.py
 class EditElectionForm(forms.ModelForm):
     class Meta:  # pt a defini datele actuale ale clasei
         model = Election
+        model.election_title=forms.CharField(widget=forms.TextInput(attrs={'class':'form-control'}))
         fields = ['election_title', 'election_content', 'start_date', 'end_date', 'isActive']
         # model.start_date=forms.DateField(widget = DateInput) #ca sa selectez data din calendar
         model.start_date = forms.DateTimeField()

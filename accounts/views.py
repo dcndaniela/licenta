@@ -41,12 +41,12 @@ def RegisterView(request):
             cnpu= form.cleaned_data['cnp']
             passw=form.cleaned_data['password1'] #cleaned_data este un dictionary
             phoneu=form.cleaned_data['phone']
-            user=User.objects.create_user(cnpu, phone=phoneu, password=passw) #creez User
-            messages.success(request, 'Thank you for registering, {} !'.format(user.username),
+            user=User.objects.create_user(cnp=cnpu, phone=phoneu, password=passw) #creez User
+            # messages.success(request, 'Thank you for registering, {} !'.format(user.username),
+            #                  extra_tags = 'alert alert-success alert-dismissible fade show')
+            messages.success(request, 'Thank you for registering!',
                              extra_tags = 'alert alert-success alert-dismissible fade show')
-            #return HttpResponseRedirect(reverse('accounts:login'))
             return redirect('accounts:login')
-            #print('User nou creat!')
     else:
         form=RegisterForm()
     return render(request, 'accounts/register.html',{'form': form} )

@@ -1,11 +1,11 @@
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, render,redirect
 from django.contrib import messages
-from polls.models import Election, Choice, Vote, Voter, AuditedBallot
+from polls.models import Election, Choice, Vote, Voter, AuditedBallot, Trustee
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
 from polls.forms import ElectionForm, EditElectionForm, ChoiceForm
-from polls import eg, algoritmi
+from polls import eg, algoritmi, functiiUtile, Vote_Trustees_check
 import hashlib
 from random import randint
 import math
@@ -22,13 +22,12 @@ import math
 def IndexView(request):
     is_allowed = request.user.is_staff
     searchContent=""#ce contine initial search-ul
-    user_current=request.user.alias #uuid
-    #user_current="User"+user_current_alias[0:8]
+    user_current=functiiUtile.get_user_type(request) #uuid
 
-    if request.user.is_staff:
-         polls = Election.objects.all().order_by('start_date') #Admin ul vede toate polls
+    if functiiUtile.is_Admin_or_Staff(request):
+         polls = Election.objects.all().order_by('start_date') #Admin ul sau Stuff ul vede toate polls
     else:
-        # cele activate care au start_date inainte de prezentul meu
+        # cele active care au start_date inainte de prezentul meu
         polls = Election.objects.filter(isActive = True).filter(start_date__lte = timezone.now()).order_by('-start_date')
 
     if 'title' in request.GET:#ordonare crescator dupa titlu
@@ -39,9 +38,9 @@ def IndexView(request):
         #headline(adica election_title) + __ + metoda folosita(adica icontains)
         polls=polls.filter(election_title__icontains=searchContent)
 
+#asezare in pagina (cate 4 polls)
     paginator = Paginator(polls, 4)
     page = request.GET.get('page', 1)
-
     try:
         polls_paginated = paginator.page(page)
     except PageNotAnInteger:
@@ -49,40 +48,41 @@ def IndexView(request):
     except EmptyPage:
         polls_paginated = paginator.page(paginator.num_pages)
 
-    #pentu ca ordonarea alfabetica sa fie activa pe toate paginile (at cand A-Z este galben(warning))
+#pentu ca ordonarea alfabetica sa fie activa pe toate paginile (at cand A-Z este galben(warning))
     get_dict_copy=request.GET.copy()
-    # ca sa pot pune in ruta &{{params}} in index.html
+# ca sa pot pune in ruta &{{params}} in index.html
     params=get_dict_copy.pop('page',True) and get_dict_copy.urlencode()
 
     context = {'polls': polls_paginated, 'params':params,'searchContent':searchContent,'is_allowed':is_allowed,
                'user_current':user_current}
     return render(request, 'polls/index.html',context)
-    #return redirect('polls:index')
 
 
 @login_required
 def AddElectionView(request):
-    if not request.user.is_staff: #doar cei din stuff pot crea o noua Election
-        messages.error(request, 'You are not allowed to add an election!',
-                         extra_tags = 'alert alert-danger alert-dismissible fade show')
+    if not functiiUtile.is_Admin_or_Staff(request): #doar cei din stuff pot crea o noua Election
+        messages.error(request, 'You are not allowed to add an election!',extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
 
     if request.method =="POST":
         form=ElectionForm(request.POST)
         if form.is_valid(): #in documentatiela forms-> save method
             new_election = form.save(commit=False)# NU salvez inca in BD
-            #new_election.pub_date=datetime.datetime.now()
             new_election.owner=request.user
-            pk,sk = eg.generate_keys()
-            new_election.public_key = pk
-            print('public key=',pk)
-            #print('sk view=',randint(1, 46))
-            new_election.private_key = sk
+
+            p,q,g=algoritmi.generateEG_p_q_g()
+            public_key,secret_key = algoritmi.generateEG_pk_sk(p,q,g)
+            new_election.p=p
+
+            new_election.q = q
+            new_election.g = g
+            new_election.public_key = public_key
+            #print('public key=',public_key)
+            new_election.secret_key = secret_key
             new_election.modified_at = timezone.now()
-            #new_election = form.save()  # salvez in BD
-            new_election.save()
-            new_election.election_hash = hashlib.sha224((str(new_election.election_title)
-                                                         + str(new_election.public_key)).encode()).hexdigest()
+            new_election = form.save()  # salvez in BD
+            # new_election.election_hash = hashlib.sha256((str(new_election.election_title)
+            #                                              + str(new_election.public_key)).encode()).hexdigest()
             new_election.save()
 
             new_choice1=Choice(
@@ -93,7 +93,21 @@ def AddElectionView(request):
                 election = new_election,
                 choice_text = form.cleaned_data['choice2'] #choice2 din forms.py
                 ).save()
-            #alert alert-success este din Bootstrap
+#creez Trustee1
+
+            posk = algoritmi.ZKProofIACR_Trustee_verify_sk(p, q, q, secret_key, public_key)
+            name="Trustee1"
+            new_trustee1=Trustee(election=new_election,public_key=public_key,secret_key=secret_key,posk=posk,name=name)
+            new_trustee1.save()
+#creez Trustee2
+            public_key_t2, secret_key_t2 = algoritmi.generateEG_pk_sk(p, q, g)
+            posk = algoritmi.ZKProofIACR_Trustee_verify_sk(p, q, q, secret_key_t2, public_key_t2)
+            name = "Trustee2"
+            new_trustee2 = Trustee(election = new_election, public_key = public_key_t2, secret_key = secret_key_t2,
+                                   posk = posk, name = name)
+            new_trustee2.save()
+
+#alert alert-success este din Bootstrap
             messages.success(request,'Election was successfully added!',
                              extra_tags = 'alert alert-success alert-dismissible fade show')
             return redirect('polls:index')
@@ -105,7 +119,8 @@ def AddElectionView(request):
 @login_required()
 def EditElectionView(request,poll_id):
     poll=get_object_or_404(Election,id=poll_id)
-    if request.user != poll.owner or (not request.user.is_staff) or (not poll.has_not_started):
+
+    if not functiiUtile.can_edit_Election(request,poll):
         messages.error(request, 'You are not allowed to edit this election!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
@@ -129,7 +144,7 @@ def EditElectionView(request,poll_id):
 @login_required
 def DeleteElectionView(request, poll_id):
     poll = get_object_or_404(Election, id = poll_id)
-    if request.user != poll.owner or (not request.user.is_staff) or (not poll.has_not_started):
+    if not functiiUtile.can_edit_Election(request,poll):
         messages.error(request, 'You are not allowed to delete this election!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
@@ -137,16 +152,16 @@ def DeleteElectionView(request, poll_id):
     if request.method == "POST":
         poll.delete()
         messages.success(request,'Election deleted successfully',
-            extra_tags = 'alert alert-success alert-dismissible fade show'
-            )
+            extra_tags = 'alert alert-success alert-dismissible fade show')
         return redirect('polls:index')
+
     return render(request, 'polls/delete.html', {'poll': poll})
 
 
 @login_required
 def AddChoiceView(request, poll_id):
     poll=get_object_or_404(Election,id=poll_id)
-    if request.user != poll.owner or (not request.user.is_staff) or (not poll.has_not_started):
+    if not functiiUtile.can_edit_Election(request,poll):
         messages.error(request, 'You are not allowed to add a choice!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
@@ -161,7 +176,7 @@ def AddChoiceView(request, poll_id):
             new_choice.save()
             messages.success(request, 'Choice added successfully !',
                              extra_tags = 'alert alert-success alert-dismissible fade show')
-            return redirect('polls:index')
+            return redirect('polls:edit', poll_id = poll.id)
     else:
         form= ChoiceForm()
     return render(request,'polls/add_choice.html',{'form':form})# pun {'form':form} ca sa imi afiseze fields din form
@@ -184,7 +199,7 @@ def EditChoiceView(request,choice_id):
             form.save() #editez choice care exista deja
             messages.success(request, 'Choice edited successfully !',
                              extra_tags = 'alert alert-success alert-dismissible fade show')
-            return redirect('polls:index')
+            return redirect('polls:edit', poll_id = poll.id)
     else:
         form= ChoiceForm(instance = choice)
         # pasez choice ca sa o accesez
@@ -195,20 +210,27 @@ def EditChoiceView(request,choice_id):
 def DeleteChoiceView(request,choice_id):
     choice = get_object_or_404(Choice, id = choice_id)
     poll = get_object_or_404(Election, id = choice.election.id)
-    if request.user != poll.owner or (not request.user.is_staff) or (not poll.has_not_started):
-        messages.error(request, 'You are not allowed to delete tis choice!',
-                       extra_tags = 'alert alert-danger alert-dismissible fade show')
-        return redirect('polls:index')
+    choices_number = Choice.objects.filter(election = poll).count()
 
-    if request.method == "POST":
-        poll.modified_at = timezone.now()
-        poll.save()
-        choice.delete()
-        messages.success(request,'Choice deleted successfully!',
-        extra_tags = 'alert alert-success alert-dismissible fade show'
-        )
-        return redirect('polls:index')
-        #return redirect('polls:edit', choice_id=choice.id)
+    if (choices_number > 2):
+        if not functiiUtile.can_edit_Election(request,poll):
+            messages.error(request, 'You are not allowed to delete this choice!',
+                           extra_tags = 'alert alert-danger alert-dismissible fade show')
+            return redirect('polls:index')
+
+        if request.method == "POST":
+            poll.modified_at = timezone.now()
+            poll.save()
+            choice.delete()
+            messages.success(request,'Choice deleted successfully!',
+                             extra_tags = 'alert alert-success alert-dismissible fade show')
+            return redirect('polls:edit', poll_id = poll.id)
+
+    else:
+        messages.error(request, 'Election should have at least 2 choices!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
+        return redirect('polls:edit', poll_id = poll.id)
+
     return render(request, 'polls/delete_choice.html', {'choice': choice})
 
 
@@ -216,14 +238,15 @@ def DeleteChoiceView(request,choice_id):
 def DetailView(request,poll_id):
     poll = get_object_or_404(Election, id=poll_id)
 
-    #user_can_vote=poll.user_can_vote(request.user)
-    # daca NU este activa sau inca nu a fost publicata, este vizibila doar pentru Admin
-    if not poll.isActive or poll.start_date>timezone.now() :
-        if not request.user.is_superuser:
+    is_first_vote_for_this_election=poll.is_first_vote_for_this_election(request.user)
+    # daca NU este publicata si este User => este vizibila doar pentru Admin/Saff
+    if not functiiUtile.can_see_DetailView(request,poll):
+            messages.error(request, 'You are not allowed to see this election!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
             return redirect('polls:index')
 
-    #context={'election': poll,'user_can_vote':user_can_vote}
-    context = {'election': poll}
+    #context={'election': poll,'is_first_vote_for_this_election':is_first_vote_for_this_election}
+    context = {'election': poll, 'is_first_vote_for_this_election':is_first_vote_for_this_election}
     return render(request, 'polls/detail.html', context)
 
 
@@ -231,8 +254,13 @@ def DetailView(request,poll_id):
 def VotesIndexView(request, poll_id):
     poll = get_object_or_404(Election, id = poll_id)
     audited_ballots= AuditedBallot.objects.filter(election=poll).order_by('-added_at')
+    exists_votes=True
+    if not audited_ballots.exists():
+        exists_votes=False # inca nu sunt voturi
 
-    # cate 4 votes pe pagina
+    votes_number= audited_ballots.count()
+
+# cate 4 votes pe pagina
     paginator = Paginator(audited_ballots, 4)
     page = request.GET.get('page', 1)
 
@@ -243,7 +271,8 @@ def VotesIndexView(request, poll_id):
     except EmptyPage:
         audited_ballots_paginated = paginator.page(paginator.num_pages)
 
-    context={'audited_ballots': audited_ballots_paginated,'poll': poll}
+    context={'audited_ballots': audited_ballots_paginated,'poll': poll, 'exists_votes':exists_votes,
+             'votes_number':votes_number}
     return render(request,'polls/votes_index.html',context)
 
 
@@ -257,9 +286,9 @@ def ResultsView(request,poll_id):
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
 
-    #user_can_vote = poll.user_can_vote(request.user)
+    #is_first_vote_for_this_election = poll.is_first_vote_for_this_election(request.user)
     results=poll.get_results_dict()
-    print (results)
+    #print (results)
     # for key in results:
     #     if key=='num_votes':
     #         if results[]
@@ -275,64 +304,90 @@ def ResultsView(request,poll_id):
 def vote(request, poll_id):
     election = get_object_or_404(Election, pk = poll_id)
     # daca inca nu a inceput, s-a sfarsit sau nu este pubica => NU poate vota
+    if election.can_see_results:
+        messages.error(request, 'Election is closed! You can not vote anymore!',
+                       extra_tags = 'alert alert-danger alert-dismissible fade show')
+        return redirect('polls:results', poll_id = poll_id)
+
     if election.start_date>timezone.now() or election.isActive==False:
         messages.error(request, 'Election is not opened yet!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
-    if election.end_date<timezone.now():
-        messages.error(request, 'Election is closed!You can not vote anymore!',
-                       extra_tags = 'alert alert-danger alert-dismissible fade show')
-        return redirect('polls:results', poll_id = poll_id)
 
-    # user_can_vote=election.user_can_vote(request.user)
-    # if not user_can_vote:
+
+    # is_first_vote_for_this_election=election.is_first_vote_for_this_election(request.user)
+    # if not is_first_vote_for_this_election:
     #     messages.error(request, 'You have already voted on this election!',
     #                    extra_tags = 'alert alert-danger alert-dismissible fade show')
     #     return redirect('polls:detail', poll_id = poll_id)
 
+
     choice_id=request.POST.get('choice')
-    if choice_id:
-        print(choice_id)
-        #user_uuid=str(uuid.uuid4())
-        cast_at=timezone.now()
-        choice=Choice.objects.get(id=choice_id)
-        voter=Voter(election=election, user=request.user)
-        voter.save()
-
-        alpha, beta, r= eg.encrypt(int(election.public_key),int(choice_id))
-        vote_hash_=hashlib.sha224((str(voter.election.election_title)+str(alpha)+","+str(beta)).encode()).hexdigest()
-        print('alpha=',alpha,'\n','beta=',beta,'\n','randomness=',r,'\n','vote hash=',vote_hash_,
-              '\n','election_PK=',election.public_key)
-
-        v_election_hash = hashlib.sha224(
-            (str(election.election_title) + str(election.public_key)).encode()).hexdigest()
-        print('v_election_hash=',v_election_hash,'\n','election_hash=',election.election_hash)
-        if not (election.election_hash == v_election_hash):
-            messages.error(request, 'Something went wrong! Please contact us on vootes@vootes.com!',
-                           extra_tags = 'alert alert-danger alert-dismissible fade show')
-            return redirect('polls:detail', poll_id = poll_id)
-
-        # if not algoritmi.verify_alpha_and_beta(alpha,beta,r,election.public_key,choice_id):
-        #     messages.error(request, 'Something went wrong! Please contact us on vootes@vootes.com!',
-        #                    extra_tags = 'alert alert-danger alert-dismissible fade show')
-        #     return redirect('polls:detail', poll_id = poll_id)
-
-        new_vote=Vote(voter=voter, election=election, choice=choice,cast_at=cast_at,vote_hash=vote_hash_,
-                      alpha=alpha,beta=beta)
-        new_vote.set_tinyhash()
-        new_vote.save()
-        #print("tinyhash="+new_vote.vote_tinyhash)
-        audited_ballot=AuditedBallot(election=election,raw_vote=choice.choice_text,
-                                     vote_hash=vote_hash_,added_at=timezone.now())
-        audited_ballot.save()
-
-        messages.success(request,'Your vote has been added successfully: choice= {} vote_hash = {},alpha= {} ,beta= {},randomness= {} '
-                      .format(choice.choice_text,new_vote.vote_hash,alpha,beta,r),
-                       extra_tags = 'alert alert-success alert-dismissible fade show')
-        #print(choice)
-    else:
-        messages.error(request,'You must select a choice',
+    if not choice_id:
+        messages.error(request, 'You must select a choice',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:detail', poll_id = poll_id)
-    #return render(request,'polls:index',{'user_can_vote':user_can_vote})
+    else :
+
+        cast_at=timezone.now()
+        choice=Choice.objects.get(id=choice_id)
+
+
+        m=int(choice_id)+1 #pun +1 pt ca nu gasea inversul lui 0 in grup
+#pentru fiecare vot nou se geneereaza o pereche (pk,sk)
+        pk_vote,sk_vote=algoritmi.generateEG_pk_sk(election.p, election.q,election.g)
+        alpha_vote, beta_vote, randomness_vote = algoritmi.generateEG_alpha_beta_randomness(election.p, election.q,
+                                                               election.g, sk_vote, pk_vote, m)
+        validare_Helios=algoritmi.ChaumPedersonHeliosV4_proof_that_alpha_beta_encodes_m(election.p, election.q,election.g,
+                                                                     pk_vote, m, alpha_vote, beta_vote, randomness_vote)
+
+
+        voter = Voter(election = election, user = request.user)
+        voter.save()
+        new_vote=Vote(voter=voter, election=election, choice=choice, cast_at=cast_at)
+        new_vote.save()
+
+        trustee1=get_object_or_404(Trustee, name='Trustee1')
+        # trustee1=Trustee.objects.filter(election=election).filter(name='Trustee1')
+        validare_trustee1=Vote_Trustees_check.Trustee_validate_vote(election.p, election.q,election.g,sk_vote,pk_vote,
+                                        trustee1.secret_key,trustee1.public_key,alpha_vote,beta_vote,randomness_vote,m)
+
+        trustee2 = get_object_or_404(Trustee, name = 'Trustee2')
+        # trustee2 = Trustee.objects.filter(election=election).filter(name='Trustee2')
+        validare_trustee2 = Vote_Trustees_check.Trustee_validate_vote(election.p,election.q,election.g,sk_vote,pk_vote,
+                                          trustee2.secret_key,trustee2.public_key,alpha_vote,beta_vote,randomness_vote, m)
+        print('trustee1=', trustee1)
+        print('trustee2=', trustee2)
+
+
+        verified_at=timezone.now()
+        new_vote.verified_at = verified_at
+
+        if validare_Helios and validare_trustee1 and validare_trustee2:
+
+            vote_hash_ = hashlib.sha256((str(sk_vote) + ',' + str(alpha_vote) + ',' + str(beta_vote) + ',' + str(randomness_vote) + ',' + str(
+                    election.election_title) +
+                 ',' + str(election.id)).encode()).hexdigest()
+
+            audited_ballot=AuditedBallot(election=election,
+                                         vote_hash=vote_hash_,added_at=timezone.now())
+            audited_ballot.save()
+
+            messages.success(request,'Your vote was validated by our Trustees! Your vote has been added successfully: '
+                                     'choice= {} vote_hash = {},alpha= {} ,beta= {},randomness= {} '
+                          .format(choice.choice_text,audited_ballot.vote_hash,alpha_vote,beta_vote,randomness_vote),
+                           extra_tags = 'alert alert-success alert-dismissible fade show')
+        #print(choice)
+        else:
+            invalidated_at = timezone.now()
+            messages.error(request,
+                           'Something went wrong! Your vote has NOT been casted! '
+                           'Please retry! If the problem persists, please contact us on vootes@vootes.com!',
+                           extra_tags = 'alert alert-danger alert-dismissible fade show')
+            new_vote.invalidated_at = invalidated_at
+            new_vote.save()
+            return redirect('polls:detail', poll_id = poll_id)
+
+
+    #return render(request,'polls:index',{'is_first_vote_for_this_election':is_first_vote_for_this_election})
     return redirect("polls:detail", poll_id = poll_id)

@@ -38,14 +38,17 @@
                                     <div aria-valuemax="100"
                                          aria-valuemin="0" aria-valuenow="
                                          {{choice_dict.percentage}}" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                                         style="width: {{choice_dict.percentage}}%;">{{choice_dict.percentage}}%
+                                         style="width:{{choice_dict.percentage}}%;">{{choice_dict.percentage}}%
                                     </div>
                                   </div>
                 </div>
             </div>
                    {% endfor %}
 
-
+            <a href="{% url 'polls:votes_index' election.id %}" style="color: darkviolet" >
+                         <i aria-hidden="true" class="fa fa-envelope"></i> <!-- + este luat din fontawesome.com -> icons -->
+                          Casted Votes->
+                       </a>
 
 
 

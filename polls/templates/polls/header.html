@@ -24,9 +24,24 @@
                 </form>
    </ul>
 
+
 <div class="navbar-nav ml-auto">
+
+
     {% if request.user.is_authenticated %}
-    <a class="nav-item nav-link" href="{% url 'accounts:logout' %}">Logout</a>
+
+        {% if request.user.is_superuser %}
+        <a class="nav-item nav-link" href="">Administrator</a>
+        {% elif request.user.is_staff%}
+        <i aria-hidden="true" class="fa fa-user"></i>
+        <a class="nav-item nav-link" href="" style="color: black">Staff</a>
+        {% else %}
+            <i aria-hidden="true" class="fa fa-user"></i>
+            <a class="nav-item nav-link" href="" style="color: black">User</a>
+        {% endif %}
+        &nbsp &nbsp
+
+        <a class="nav-item nav-link" href="{% url 'accounts:logout' %}">Logout</a>
     {% else %}
     <a class="nav-item nav-link" href="{% url 'accounts:login' %}">Login</a>
     {% endif %}

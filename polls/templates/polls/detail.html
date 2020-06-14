@@ -1,12 +1,11 @@
 
 {% extends 'polls/base.html' %} <!--includ base.html -->
 
-
 {% block main_content %} <!--override lui main_content din base.html -->
 
 {% if messages %}
       {% for message in messages %}
-                <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
+                <div %} %} class="{{ message.tags }}" endif if message.tags {% {% >
                         {{ message }}
                          <button aria-label="Close" class="close" data-dismiss="alert" type="button">
                          <span aria-hidden="true">&times;</span>
@@ -21,7 +20,14 @@
 </div>
 
 {% endif %}
-<h2>{{ election.election_content }}</h2>
+
+<div style="color: darkcyan">
+    <i>Election name:</i> <b>{{election.election_title}}</b>
+</div>
+
+<br>
+
+<h2 >{{ election.election_content }}</h2>
 <div class="container">
     <div class="row">
         <div class="col">
@@ -33,7 +39,15 @@
                     <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label>
                     <br>
                 {% endfor %}
-                <input %} %}disabled class="btn btn-success" endif if not type="submit" user_can_vote value="Vote" {% {%/>
+
+            <div>
+                <input class='btn btn-success' type="submit" value="Vote" />
+                &nbsp &nbsp <!-- adaug spatii -->
+            {% if not is_first_vote_for_this_election%}
+                    <i class="fas fa-exclamation-triangle" style="color: crimson">
+                     You voted already!</i>
+            {% endif %} </div>
+
             </form>
             <a href="{% url 'polls:index' %}"> <-Back to elections list</a>
                         <p></p>

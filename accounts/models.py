@@ -3,6 +3,7 @@ import uuid
 from django.core.validators import RegexValidator
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.core.validators import MinLengthValidator, MaxLengthValidator
 
 
 class MyAccountManager(BaseUserManager):
@@ -38,9 +39,14 @@ class MyAccountManager(BaseUserManager):
 
 class CustomUser(AbstractBaseUser):
     cnp= models.CharField(verbose_name = 'CNP',max_length = 13, null = False,unique=True,
-                          validators=[RegexValidator(r'^[0-9]+$', 'Enter a valid CNP.')])
+                          validators=[MinLengthValidator(13, message ="CNP should have 13 digits!"),
+                                      MaxLengthValidator(13, message = "CNP should have 13 digits!"),
+                                      RegexValidator(r'^[1-9]+[0-9]+$', 'Enter a valid CNP, formed with digits only!')])
+
     phone=models.CharField(verbose_name = 'Phone', max_length = 10, null = False,unique=True,
-                           validators = [RegexValidator(r'^07[0-9]+$', 'Enter a valid Phone number.')]
+                           validators = [MinLengthValidator(10, message ="Phone number should have 10 digits!"),
+                                         MaxLengthValidator(10, message = "Phone number should have 10 digits!"),
+                                         RegexValidator(r'^07[0-9]+$','Enter a valid Phone number, formed with digits only!')]
                            )
     alias = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
 

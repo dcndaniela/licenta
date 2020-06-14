@@ -3,38 +3,37 @@
 {% block main_content %}
 
 <div class="container">
-
     <div class="row">
         <div class="col-md-6 offset-md-3">
+
             {% if messages %}
-                          {% for message in messages %}
-                                     <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
-                                         {{ message }}
-                                         <button aria-label="Close" class="close" data-dismiss="alert" type="button">
-                                             <span aria-hidden="true">&times;</span>
-                                           </button> <!-- adaug acest buton ca sa inchid mesajul de alerta -->
-                                     </div>
-                          {% endfor %}
-                   {% endif %}
+                         {% for message in messages %}
+                                    <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
+                                        {{ message }}
+                                        <button aria-label="Close" class="close" data-dismiss="alert" type="button">
+                                            <span aria-hidden="true">&times;</span>
+                                          </button> <!-- adaug acest buton ca sa inchid mesajul de alerta -->
+                                    </div>
+                         {% endfor %}
+                  {% endif %}
 
+                <form action="" method="post"> <!-- action="", adica blink(ramane pe aceeasi pagina) -->
+                {% csrf_token %}
+                  <div class="form-group">
+                    <label for="username">CNP</label>
+                    <input class="form-control" name="username" placeholder="Enter username" type="text">
+                    <small class="form-text text-muted" id="emailHelp">We'll never share your personal data with anyone else.</small>
+                  </div>
 
-            <form action="" method="post"> <!-- action="", adica blink(ramane pe aceeasi pagina) -->
-            {% csrf_token %}
-              <div class="form-group">
-                <label for="username">CNP</label>
-                <input class="form-control" name="username" placeholder="Enter username" type="text">
-                <small class="form-text text-muted" id="emailHelp">We'll never share your personal data with anyone else.</small>
-              </div>
+                  <div class="form-group">
+                    <label for="password">Password</label>
+                    <input class="form-control" name="password" placeholder="Enter password" type="password">
+                  </div>
+               <br>
+                  <button class="btn btn-primary" type="submit">Submit</button>
+                </form>
 
-              <div class="form-group">
-                <label for="password">Password</label>
-                <input class="form-control" name="password" placeholder="Enter password" type="password">
-              </div>
-           <br>
-              <button class="btn btn-primary" type="submit">Submit</button>
-            </form>
-
-            <p> Need an account? <a href="{% url 'accounts:register' %}"> Register Here! </a> </p>
+                <p> Need an account? <a href="{% url 'accounts:register' %}"> Register Here! </a> </p>
 
 
         </div>

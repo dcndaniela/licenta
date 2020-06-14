@@ -3,14 +3,14 @@
 {% block main_content %}
 
 <div class="container">
-    <h2 class="text-center">All casted votes for election <a href="" style="color: rebeccapurple">{{poll.election_title}} </a></h2>
+    <h2 class="text-center">All casted votes for election <a href="{%url 'polls:detail' poll.id %}" style="color:rosybrown">{{poll.election_title}} </a></h2>
     <br>
     <div class="row">
         <div class="col-sm-8 offset-sm-2">
 
             {% if messages %}
                    {% for message in messages %}
-                              <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
+                              <div %} %} class="{{ message.tags }}" endif  if message.tags {% {%>
                                   {{ message }}
                                   <button aria-label="Close" class="close" data-dismiss="alert" type="button">
                                       <span aria-hidden="true">&times;</span>
@@ -19,17 +19,16 @@
                    {% endfor %}
             {% endif %}
 
-
+            <div style="text-align: center"> Currently are {{votes_number}} casted votes</div>
+<br>
             <ul class="list-group">
                            {%for ab in audited_ballots%}
                                       <li class="list-group-item " style="background-color: lavender " >
-                                          <span style="color: darkcyan">Vote for: {{ab.raw_vote}}</span>
                                           <p style="color: darkcyan">Vote hash: {{ab.vote_hash}}</p>
-                                          <span>Added at: {{ab.added_at}}</span>
+                                          <span>Added at: {{ab.added_at|date:"d-M-Y h:i:s A"}}</span>
                                       </li>
                            {%endfor%}
             </ul>
-
 
         </div>
     </div>

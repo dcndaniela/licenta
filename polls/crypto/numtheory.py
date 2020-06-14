@@ -1092,7 +1092,7 @@ def elgamal_encrypt(plain_text, public_key):
         cipher.append(encrypted)
     return cipher   
 
-def elgamal_decrypt(cipher_text, private_key):
+def elgamal_decrypt(cipher_text, secret_key):
     """
     Encrypt a message using the ElGamal cryptosystem
     with given public_key = (E, B, n*B).
@@ -1107,7 +1107,7 @@ def elgamal_decrypt(cipher_text, private_key):
     >>> print elgamal_decrypt(v, private)
     TOP SECRET MESSAGE!
     """
-    E, n = private_key
+    E, n = secret_key
     p = E[2]
     plain = []
     for rB, P_plus_rnB in cipher_text:

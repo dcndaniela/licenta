@@ -77,16 +77,16 @@ import sympy as sympy
 #     w= randint(1,q-1)
 #     A=pow(g,w,p)
 #     B=pow(pk,w,p)
-#     challange=randint(1,q-1)
-#     response=w+challange*y
-#     print('verif alpha=',(A*pow(c1,challange,p))%p==pow(g,response,p) )
+#     challenge=randint(1,q-1)
+#     response=w+challenge*y
+#     print('verif alpha=',(A*pow(c1,challenge,p))%p==pow(g,response,p) )
 #     invers_g_m=sympy.mod_inverse(pow(g,m,p), p)
 #     beta_over_m=(sympy.mod_inverse(pow(g,m,p), p)*c2) %p
-#     print('st1=',pow(pk,response,p),'\n','dr1=',(B* pow(beta_over_m,challange,p))%p)
-#     print('st2=',pow(pk,response,p),'\n','dr2=',(B*pow(int(c2*invers_g_m),challange,p))%p)
+#     print('st1=',pow(pk,response,p),'\n','dr1=',(B* pow(beta_over_m,challenge,p))%p)
+#     print('st2=',pow(pk,response,p),'\n','dr2=',(B*pow(int(c2*invers_g_m),challenge,p))%p)
 #
-#     print('verif beta over m=',pow(pk,response,p)==(B* pow(beta_over_m,challange,p))%p)
-#     print('verif beta=', (B*pow(int(c2*invers_g_m),challange,p))%p==pow(pk,response,p))
+#     print('verif beta over m=',pow(pk,response,p)==(B* pow(beta_over_m,challenge,p))%p)
+#     print('verif beta=', (B*pow(int(c2*invers_g_m),challenge,p))%p==pow(pk,response,p))
 #
 #
 #ChaumPederson ZKProof
@@ -133,14 +133,22 @@ import sympy as sympy
 #     print(pow(g,r,p)==alpha,'\n')
 #     #print(pow(y,r,p)*m % p == beta)
 #     return((pow(g,r,p)==alpha) and ((pow(y,r,p)*m % p) == beta))
-
+#
+# def SchnorrIACR_verify_sk(p,q,g,pk,sk):
+#     #Alice utilizeaza acest protocol pt a-i dovedi lui bob ca isi cunoaste sk (secret key)
+#     c=randint(1,q-1)
+#     sk2=randint(1,q-1)
+#     pk2=pow(g,sk2,p)
+#     inverse=sympy.mod_inverse(pow(pk,c,p), q)
+#     pk1=(pk2*inverse) % p
+#     print('schnorr=',pow(g,sk2,p)== (pk1*pow(pk,c,p))%p)
 
 def generateEG_p_q_g():
-    possibleP=[10007,10009,10037]
+    possibleP=[10007,10009,283]
     i=randint(0,len(possibleP)-1)
     p=possibleP[i]
     q=int((p-1)/2)
-    for g in range(101,p): #pornesc de la 101 pt ca vreau ca g sa fie nu foarte mic
+    for g in range(30,p): #pornesc de la 101 pt ca vreau ca g sa fie nu foarte mic
         if pow(g,q,p)==1:
             #print('g=', g)
             break
@@ -151,6 +159,7 @@ def generateEG_p_q_g():
 def generateEG_pk_sk(p,q,g):
     sk = randint(1, q - 1)  # secret key
     pk = pow(g, sk, p)  # public key=h
+    print('pk=',pk,'sk=',sk)
     return pk,sk
 
 
@@ -161,66 +170,107 @@ def generateEG_alpha_beta_randomness(p,q,g,sk,pk,m): #m este mesajul in clar (pl
     return  alpha,beta,randomness
 
 
-def ZKProofIACR_verify_sk(p,q,g,sk,pk):
+def ZKProofIACR_Trustee_verify_sk(p,q,g,sk,pk,):
 #verific ca sk s-a generat corect pentru pk
     sk1 = randint(1, q - 1)  # secret key
     pk1 = pow(g, sk1, p)  # public key=h
-    challange=randint(1,q-1)
-    pk2=pk1*pow(pk,challange,p) %p
-    sk2= (sk1+challange*sk) %q
+    challenge=randint(1,q-1)
+    pk2=pk1*pow(pk,challenge,p) %p
+    sk2= (sk1+challenge*sk) %q
     #print('pow(g,sk2,p)=',pow(g,sk2,p))
     #print('pk2=',pk2)
     return(pow(g,sk2,p)==pk2)
 
+def ZKProofIACR_verify_sk(p,q,g,sk,pk,sk_trustee,pk_trustee):
+#verific ca sk s-a generat corect pentru pk
+    sk1=sk_trustee
+    pk1=pk_trustee
+    challenge=randint(1,q-1)
+    pk2=pk1*pow(int(pk),challenge,p) %p
+    sk2= (sk1+challenge*sk) %q
+    return(pow(g,sk2,p)==pk2)
 
-def ZKProofHeliosV4_verify_alpha_beta(p,q,g,pk,m,alpha,beta,randomness):
+
+def ChaumPedersonHeliosV4_proof_that_alpha_beta_encodes_m(p,q,g,pk,m,alpha,beta,randomness):
+# verifica daca (alpha,beta,randomness) si (pk,p,q,g) cripteaza m
     w = randint(1, q - 1)
     A = pow(g, w, p)
     B = pow(pk, w, p)
-    challange = randint(1, q - 1)
-    response = w + challange * randomness
-    verify_alpha=(A * pow(alpha, challange, p)) % p == pow(g, response, p)
+    challenge = randint(1, q - 1)
+    response = w + challenge * randomness
+    verify_alpha=(A * pow(alpha, challenge, p)) % p == pow(g, response, p)
     beta_over_m = (sympy.mod_inverse(pow(g, m, p), p) * beta) % p
-    verify_beta= pow(pk, response, p) == ((B * pow(beta_over_m, challange, p)) % p)
-    #print('verif alpha=', (A * pow(alpha, challange, p)) % p == pow(g, response, p))
-    #print('st1=', pow(pk, response, p), '\n', 'dr1=', (B * pow(beta_over_m, challange, p)) % p)
-    #print('verif beta over m=', pow(pk, response, p) == (B * pow(beta_over_m, challange, p)) % p)
+    verify_beta= pow(pk, response, p) == ((B * pow(beta_over_m, challenge, p)) % p)
+    #print('verif alpha=', (A * pow(alpha, challenge, p)) % p == pow(g, response, p))
+    #print('st1=', pow(pk, response, p), '\n', 'dr1=', (B * pow(beta_over_m, challenge, p)) % p)
+    #print('verif beta over m=', pow(pk, response, p) == (B * pow(beta_over_m, challenge, p)) % p)
     return ( verify_alpha and verify_beta)
 
 
-def ChaumPederson_correct_decryption(p,q,g,alpha,beta,pk,sk):
-
-    r=randint(1,q-1)
+def ChaumPederson_correct_decryption(p,q,g,alpha,beta,pk,sk, pk_trustee,sk_trustee):
+#pag 31/45 din IACR
+    r=sk_trustee
+    v=pk_trustee
+    #r=randint(1,q-1)
     u= pow(alpha,r,p)
-    v=pow(g,r,p)
-    challange =int(hashlib.sha256((str(pk)+str(alpha)+str(beta)+str(u)+str(v)).encode()).hexdigest(),16)
-    print('challange=',challange)
-    s= (r+challange*sk) %q
+    #v=pow(g,r,p)
+    challenge =int(hashlib.sha256((str(pk)+str(alpha)+str(beta)+str(u)+str(v)).encode()).hexdigest(),16)
+    print('challenge=',challenge)
+    s= (r+challenge*sk) %q
     decryption_factor=pow(alpha,sk,p)
-    verif1=pow(alpha,sk,p)==u*pow(decryption_factor,challange,p) %p
-    verif2= pow(g,sk,p)== v* pow(pk,challange,p)
-    print(verif1==verif2)
+    verif1=pow(alpha,sk,p)==u*pow(decryption_factor,challenge,p) %p
+    verif2= pow(g,sk,p)== v* pow(pk,challenge,p)
+    return verif1 == verif2
 
 
+def verify_partial_decryption_proof(p,q,g,pk,sk,m,alpha,beta,randomness):
+# verifica daca (alpha,beta,randomness) si (pk,p,q,g) cripteaza m
+    w = randint(1, q - 1)
+    A = pow(g, w, p)
+    B = pow(pk, w, p)
+    challenge = randint(1, q - 1)
+    response = w + challenge * randomness
+    verify_alpha=(A * pow(alpha, challenge, p)) % p == pow(g, response, p)
+    beta_over_m = (sympy.mod_inverse(pow(g, m, p), p) * beta) % p
+    verify_beta= pow(pk, response, p) == ((B * pow(beta_over_m, challenge, p)) % p)
+    #print('verif alpha=', (A * pow(alpha, challenge, p)) % p == pow(g, response, p))
+    #print('st1=', pow(pk, response, p), '\n', 'dr1=', (B * pow(beta_over_m, challenge, p)) % p)
+    #print('verif beta over m=', pow(pk, response, p) == (B * pow(beta_over_m, challenge, p)) % p)
 
+    dec_factor=pow(alpha,sk,p)
+    if pow(g,response,p)!= (A* pow(pk,challenge,p) % p):
+        return False
+    if(pow(alpha, response,pk) != (B* pow(dec_factor,challenge,p)) % p):
+        return False
 
+    str_to_hash=str(A)+","+str(B)
+    computed_challenge=int(hashlib.sha256(str_to_hash.encode()).hexdigest(),16)
 
-
+    return True
+    #return computed_challenge==challenge
 
 
 def main():
-    p,q,g=generateEG_p_q_g()
-    pk,sk=generateEG_pk_sk(p,q,g)
-    m=5
-    if(ZKProofIACR_verify_sk(p,q,g,sk,pk)):
-        alpha, beta, randomness = generateEG_alpha_beta_randomness(p, q, g, sk, pk, m)
-        if ZKProofHeliosV4_verify_alpha_beta(p,q,g,pk,m,alpha,beta,randomness) :
-            print('corect')
-            ChaumPederson_correct_decryption(p, q, g, alpha, beta, pk, sk)
-        else:
-            print('incorect')
-    else:
-        print('incorect')
+    # p,q,g=generateEG_p_q_g()
+    # pk,sk=generateEG_pk_sk(p,q,g)
+    # # print(ZKProofIACR_verify_sk(p,q,g,sk,pk))
+    # # print(ZKProofIACR_verify_sk(p,q,g,54,pk))
+    # m=234
+    # alpha, beta, randomness = generateEG_alpha_beta_randomness(p, q, g, sk, pk, m)
+    # print(ChaumPederson_correct_decryption(p,q,g,alpha,beta,pk,sk))
+    # print(ChaumPedersonHeliosV4_proof_that_alpha_beta_encodes_m(p,q,g,pk,m,alpha,beta,randomness))
+    # m=5
+    # if(ZKProofIACR_verify_sk(p,q,g,sk,pk)):
+    #     alpha, beta, randomness = generateEG_alpha_beta_randomness(p, q, g, sk, pk, m)
+    #     if ZKProofHeliosV4_verify_alpha_beta(p,q,g,pk,m,alpha,beta,randomness) :
+    #         print('corect')
+    #         ChaumPederson_correct_decryption(p, q, g, alpha, beta, pk, sk)
+    #
+    #     else:
+    #         print('incorect')
+    # else:
+    #     print('incorect')
+    print('pow=', pow(60,3,283))
 
 
 

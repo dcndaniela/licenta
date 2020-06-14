@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Election,Choice, AuditedBallot, Vote, Voter
+from .models import Election,Choice, AuditedBallot, Vote, Voter, Trustee
 from django.contrib.auth.models import Group, User
 from accounts.models import CustomUser
 
@@ -11,10 +11,10 @@ admin.site.register(AuditedBallot)
 admin.site.register(Vote)
 admin.site.register(Voter)
 admin.site.register(Choice)
-#admin.site.register(Choice)
+admin.site.register(Trustee)
+
 
 admin.site.site_header='Admin Dashboard'
-#admin.site.unregister(User)
 
 class InLineChoices(admin.TabularInline):
     model= Choice
@@ -37,7 +37,10 @@ class ElectionAdmin(admin.ModelAdmin): # admin.ModelAdmin = clasa din care moste
         'end_date',
         'isActive',
         'public_key',
-        'private_key',
+        'secret_key',
+        'p',
+        'q',
+        'g',
         )
 
 #admin.site.register(User, electionAdmin)
