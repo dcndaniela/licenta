@@ -1,3 +1,4 @@
+import axes
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
@@ -6,7 +7,6 @@ from django.urls import reverse
 from . forms import RegisterForm
 from accounts.models import CustomUser as User
 from django.contrib.auth.decorators import login_required
-
 # Create your views here.
 
 
@@ -52,6 +52,8 @@ def RegisterView(request):
     return render(request, 'accounts/register.html',{'form': form} )
 
 
+def FailedLogInView(request):
+    return render(request, 'accounts/failed_login.html',{})
 
 
 

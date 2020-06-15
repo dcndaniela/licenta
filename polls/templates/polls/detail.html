@@ -3,6 +3,10 @@
 
 {% block main_content %} <!--override lui main_content din base.html -->
 
+<div class="container">
+    <div class="row">
+        <div class="col-sm-8 offset-sm-2">
+
 {% if messages %}
       {% for message in messages %}
                 <div %} %} class="{{ message.tags }}" endif if message.tags {% {% >
@@ -21,16 +25,13 @@
 
 {% endif %}
 
-<div style="color: darkcyan">
-    <i>Election name:</i> <b>{{election.election_title}}</b>
-</div>
+<div class="offset-sm-3">
+<!--    <i>Election name:</i> <b>{{election.election_title}}</b>-->
 
 <br>
 
 <h2 >{{ election.election_content }}</h2>
-<div class="container">
-    <div class="row">
-        <div class="col">
+
 
             <form action="{% url 'polls:vote' election.id %}" method="post"> <!-- polls=namespace din urls, vote=namespace din polls.urls -->
                 {% csrf_token %}
@@ -39,7 +40,7 @@
                     <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label>
                     <br>
                 {% endfor %}
-
+<br>
             <div>
                 <input class='btn btn-success' type="submit" value="Vote" />
                 &nbsp &nbsp <!-- adaug spatii -->
@@ -56,7 +57,7 @@
               <i aria-hidden="true" class="fa fa-envelope"></i> <!-- + este luat din fontawesome.com -> icons -->
                Casted Votes->
             </a>
-
+</div>
         </div>
     </div>
 </div>

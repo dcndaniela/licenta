@@ -4,6 +4,8 @@ from django.contrib.admin import widgets
 from django.contrib.admin.widgets import AdminSplitDateTime
 from django.core.validators import MinLengthValidator
 from django.core.validators import RegexValidator
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 
 class DateInput(forms.DateTimeField):
@@ -33,7 +35,21 @@ class ElectionForm(forms.ModelForm): #acest form il import in views.py
             'election_title':forms.Textarea(attrs = {"class":"form-control", "rows":2,"cols":10}),
            # 'start_date':DateInput(),
             'isActive':forms.CheckboxInput()
-            }
+                }
+    #
+    # def clean_start_date(self):
+    #     start_date = self.cleaned_data['start_date']
+    #     if (start_date<timezone.now()):
+    #         raise ValidationError("Start date can not be in the past!")
+    #     return start_date
+    #
+    #     def clean_end_date(self):
+    #         start_date = self.cleaned_data['start_date']
+    #         end_date = self.cleaned_data['end_date']
+    #         if (end_date <= start_date):
+    #             raise ValidationError("End date must be after start date!")
+    #         return end_date
+
 
 
 class EditElectionForm(forms.ModelForm):
@@ -49,6 +65,20 @@ class EditElectionForm(forms.ModelForm):
             # 'start_date':DateInput(),
             'isActive': forms.CheckboxInput()
             }
+
+    # def clean_start_date(self):
+    #     start_date = self.cleaned_data['start_date']
+    #     if (start_date<timezone.now()):
+    #         raise ValidationError("Start date can not be in the past!")
+    #     return start_date
+    #
+    # def clean_end_date(self):
+    #     start_dat = self.cleaned_data['start_date']
+    #     end_dat = self.cleaned_data['end_date']
+    #     if (end_dat <= start_dat):
+    #         raise ValidationError("End date must be after start date!")
+    #     return end_dat
+
 
 class ChoiceForm(forms.ModelForm):
     class Meta:

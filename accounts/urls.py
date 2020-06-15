@@ -5,8 +5,9 @@ from . import views #  . = folderul curent
 app_name = 'accounts'
 
 urlpatterns = [
-    # ex: /accounts/login
-    path('login/', views.LoginView, name='login'),
+
+    path('failed_login/', views.FailedLogInView, name='failed_login'),
+    path('login/', views.LoginView, name='login'),# ex: /accounts/login
     path('logout/', views.LogoutView, name = 'logout'),
     path('register/', views.RegisterView, name = 'register'),
 

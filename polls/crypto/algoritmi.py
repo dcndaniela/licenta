@@ -170,7 +170,7 @@ def generateEG_alpha_beta_randomness(p,q,g,sk,pk,m): #m este mesajul in clar (pl
     return  alpha,beta,randomness
 
 
-def ZKProofIACR_Trustee_verify_sk(p,q,g,sk,pk,):
+def ZKProofIACR_Trustee_verify_sk(p,q,g,sk,pk):
 #verific ca sk s-a generat corect pentru pk
     sk1 = randint(1, q - 1)  # secret key
     pk1 = pow(g, sk1, p)  # public key=h
@@ -186,7 +186,7 @@ def ZKProofIACR_verify_sk(p,q,g,sk,pk,sk_trustee,pk_trustee):
     sk1=sk_trustee
     pk1=pk_trustee
     challenge=randint(1,q-1)
-    pk2=pk1*pow(int(pk),challenge,p) %p
+    pk2=pk1*pow(pk,challenge,p) %p
     sk2= (sk1+challenge*sk) %q
     return(pow(g,sk2,p)==pk2)
 

@@ -6,7 +6,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col">
+        <div class="col-sm-10 offset-sm-4">
             {% if messages %}
                            {% for message in messages %}
                                       <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
@@ -43,7 +43,10 @@
                                   </div>
                 </div>
             </div>
+
                    {% endfor %}
+<br>
+            <br>
 
             <a href="{% url 'polls:votes_index' election.id %}" style="color: darkviolet" >
                          <i aria-hidden="true" class="fa fa-envelope"></i> <!-- + este luat din fontawesome.com -> icons -->
@@ -51,6 +54,17 @@
                        </a>
 
 
+            <div style="text-align: center">
+                {% if ok%}
+                The winner is: {{winners}}
+                {% else %}
+                Remise: The vote should be reload for
+                {% for winner in winners %}
+                {{winner}}
+                {%endfor%}
+                {%endif%}
+
+            </div>
 
         </div>
     </div>
