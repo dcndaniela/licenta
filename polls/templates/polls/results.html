@@ -6,7 +6,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-sm-10 offset-sm-4">
+        <div class="col-sm-6 offset-sm-4">
             {% if messages %}
                            {% for message in messages %}
                                       <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
@@ -45,14 +45,14 @@
             </div>
 
                    {% endfor %}
-<br>
-            <br>
+<br><br>
 
             <a href="{% url 'polls:votes_index' election.id %}" style="color: darkviolet" >
                          <i aria-hidden="true" class="fa fa-envelope"></i> <!-- + este luat din fontawesome.com -> icons -->
                           Casted Votes->
                        </a>
 
+            <br><br>
 
             <div style="text-align: center">
                 {% if ok%}

@@ -1,8 +1,6 @@
 <nav class="navbar navbar-expand-md navbar-light fixed-top "style="background-color: #f8d7da">
- <a class="navbar-brand" href="#" style="color:green">VooteS</a>
-<!--    <button aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#navbarsExampleDefault" data-toggle="collapse" type="button">-->
-<!--      <span class="navbar-toggler-icon"></span>-->
-<!--    </button>-->
+ <a class="navbar-brand" href="{% url 'polls:home' %}" style="color:lightseagreen">Voote<b>5</b> </a>
+
 
  <div class="collapse navbar-collapse" id="navbarsExampleDefault">
    <ul class="navbar-nav mr-auto">
@@ -27,32 +25,24 @@
 
 <div class="navbar-nav ml-auto">
 
-
     {% if request.user.is_authenticated %}
-
-        {% if request.user.is_superuser %}
-        <a class="nav-item nav-link" href="">Administrator</a>
-        {% elif request.user.is_staff%}
-        <i aria-hidden="true" class="fa fa-user"></i>
-        <a class="nav-item nav-link" href="" style="color: black">Staff</a>
-        {% else %}
-            <i aria-hidden="true" class="fa fa-user"></i>
-            <a class="nav-item nav-link" href="" style="color: black">User</a>
-        {% endif %}
-        &nbsp &nbsp
-
         <a class="nav-item nav-link" href="{% url 'accounts:logout' %}">Logout</a>
     {% else %}
     <a class="nav-item nav-link" href="{% url 'accounts:login' %}">Login</a>
     {% endif %}
 </div>
 
-<!--   <form class="form-inline my-2 my-lg-0">-->
-<!--     <input aria-label="Search" class="form-control mr-sm-2" placeholder="Search" type="text">-->
-<!--     <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>-->
-<!--   </form>-->
 
-
+&nbsp &nbsp <!-- pentru TABs -->
+{% if request.user.is_authenticated %}
+    {% if request.user.is_superuser %}
+    <a href=""><i class="fas fa-person-booth"></i>Administrator </a>
+    {% elif request.user.is_staff%}
+    <a href=""><i class="fas fa-person-booth"></i>Staff</a>
+    {% else %}
+        <a href=""><i class="fas fa-person-booth"></i>User</a>
+    {% endif %}
+{%endif%}
 
  </div>
 </nav>

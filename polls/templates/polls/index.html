@@ -2,7 +2,15 @@
 
 
 {% block main_content %}
-<i aria-hidden="true" class="fa fa-user"></i>{{user_current}}
+<!--<i aria-hidden="true" class="fa fa-user"></i>{{user_current}}-->
+
+<div style="text-align: left">
+    <i class="far fa-clock" style="color:#6600FF"></i>
+    <iframe allowTransparency="true"
+            frameborder="0" height="18" src="http://free.timeanddate.com/clock/i7bxi1s8/n1440/tlde/fc60f/tct/pct/ftb/tt0/tw0/tm1/ts1/ta1/tb2" width="157"></iframe>
+</div>
+
+<br>
 
 <div class="container">
 
@@ -40,9 +48,9 @@
                 {%for poll in polls%}
                            <li class="list-group-item " >
                                <a  href="{%url 'polls:detail' poll.id %}"><strong>{{poll}} </strong></a>
-                               {% if request.user == poll.owner and request.user.is_staff and poll.has_not_started %}
-                                      <a class="float-right" href="{%url 'polls:edit' poll.id %}">
-                                      <i aria-hidden="true" class="fa fa-pencil"></i></a>
+                               {% if request.user == poll.owner and request.user.is_staff or request.user.is_superuser and poll.has_not_started and not poll.has_ended %}
+                                              <a class="float-right" href="{%url 'polls:edit' poll.id %}">
+                                              <i aria-hidden="true" class="fa fa-pencil"></i></a>
                                {% endif %}
                                    <p></p>
 

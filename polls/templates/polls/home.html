@@ -1,29 +1,65 @@
-<!--{% extends 'polls/base.html' %} &lt;!&ndash;includ base.html &ndash;&gt;-->
+{% extends 'polls/base.html' %} <!--includ base.html -->
 
-<!--{% load static %}-->
-<!--<link href="{% static 'menu/style.css' %}" rel="stylesheet" type="text/css">-->
+{% load static %}
+<link href="{% static 'menu/style.css' %}" rel="stylesheet" type="text/css">
 
-<!--{% block main_content %} &lt;!&ndash;override lui main_content din base.html &ndash;&gt;-->
-<!--<div class="container">-->
-<!--    <div class="row">-->
-<!--        <div class="col">-->
-<!--            <div id="home-content">-->
+{% block main_content %} <!--override lui main_content din base.html -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-8 offset-sm-2">
+            <div id="home-content">
+                <div style="text-align: center">
+                <h1 style="color: darkcyan">Voote<b>5</b></h1>
+                    <br>
+                    <h3 style="text-align: center">Your Voice Matters!</h3>
+                    <br><br><br><br>
 
-<!--                {% if request.user.is_authenticated %}-->
-<!--                Hi, {{request.user.username}}-->
-<!--                {% endif %}-->
+                    <div class="list-group">
+                      <a class="list-group-item list-group-item-action" href="{% url 'polls:index' %}"
+                         style="background-color: lightseagreen">
+                        <b>Get started!</b>
+                      </a>
+                    </div>
 
-<!--                <h1>PollMe- Get Started! </h1>-->
+                     <br><br><br><br>
+                        <div class="container" style="text-align: left">
+                          <div class="row">
+
+                            <div class="col-sm" >
+                                <b><span style="color: darkcyan">Contact informations</span></b>
+                                <br>
+                                <i class="fas fa-inbox" ></i>By email:
+                                <br>
+<!-- &nbsp este pentru TAB -->
+                                <span>Report a problem:&nbsp &nbsp <span style="color: mediumvioletred">
+                                    <b>issues@voote5.com</b></span></span>
+                                <br>
+                                <span>Other informations:&nbsp<span style="color: mediumvioletred">
+                                    <b>voote5@voote5.com</b></span></span>
+                                                               <br>
+                                <i class="fas fa-mobile-alt"></i>
+                                <span style="color: mediumvioletred"><b>+40 700000000</b></span>
+                            </div>
+                            <div class="col-sm" style="background-color: #f8d7da">
+                             Some text
+                            </div>
+                          </div>
+                        </div>
+
+
+
+
+                </div>
+
 <!--                <img src="https://image.shutterstock.com/image-vector/heart-chat-bubble-icons-professional-260nw-703160551.jpg" />-->
-<!--                <h3>Your Voice Matters!</h3>-->
-<!--                <hr> &lt;!&ndash; trasez o linie subtire &ndash;&gt;-->
-<!--                <button class="btn btn-light btn-lg" type="button">Get Started!</button>-->
-<!--            </div>-->
-<!--        </div>-->
 
-<!--    </div>-->
-<!--{% endblock %}-->
+            </div>
+        </div>
 
-<!--</div>-->
+    </div>
+</div>
+{% endblock %}
+
+
 
 

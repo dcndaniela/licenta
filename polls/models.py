@@ -1,24 +1,20 @@
-import bleach
 from django.db import models
 from django.utils import timezone
 from accounts.models import CustomUser as User
 from django.core.validators import MinLengthValidator
 from django.core.validators import RegexValidator
-from collections import OrderedDict
-# class PublicKey(models.model):
+
 
 
 class Election(models.Model):
-    owner = models.ForeignKey(User, on_delete = models.CASCADE, default = 1)
-    election_uuid = models.CharField(max_length = 200, null = True, default=True)
-    # election_uuid= models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
+    owner = models.ForeignKey(User, on_delete = models.CASCADE, null = True)
     election_title = models.CharField('Election name', max_length = 200, null = True,
                                       validators=[MinLengthValidator(5, message ="Election name should have at least 5 characters" ),
                                                   RegexValidator(r'^[a-zA-Z0-9\s]+$', 'Enter a valid election name.') ],unique = True )
     election_content = models.CharField('Election content', max_length = 200,
                                         validators=[MinLengthValidator(10, message ="Election content should have at least 10 characters" ),
                                                     RegexValidator(r'^[a-zA-Z0-9\s:?.]+$', 'Enter a valid election content.') ])
-    pub_date = models.DateTimeField('date published', default = timezone.now, blank = True)#cand a fost creata
+    created_at = models.DateTimeField(default = timezone.now, editable = False)#cand a fost creata
     modified_at = models.DateTimeField(auto_now_add=True,null=True)
     election_hash=models.CharField(max_length = 200, null = True)
     election_tinyhash = models.CharField(max_length = 50, null = True, unique = True)
@@ -28,15 +24,13 @@ class Election(models.Model):
     isActive = models.BooleanField('PUBLISH', default = False)  # devine True cand va fi facuta public
 
     result=models.CharField(max_length = 50, null = True)
-    result_released_at = models.DateTimeField(auto_now_add = False, default = None, null = True)
+    result_released_at = models.DateTimeField(null = True)
 
-    public_key = models.IntegerField(default = 0) #cheia publica
-    secret_key = models.IntegerField(default = 0) # cheia privata
     p = models.IntegerField(default = 0) # ordin grup
     q = models.IntegerField(default = 0) # (p-1)/2
     g = models.IntegerField(default = 0) # nr random folosit la generare (pk,secret_key)
-
-    result=models.CharField(max_length = 50, null = True)
+    public_key = models.IntegerField(default = 0) #cheia publica
+    secret_key = models.IntegerField(default = 0) # cheia privata
 
     def __str__(self):  # aceasta functie exista pt fiecare obiect, deci ii fac override aici
         return self.election_title
@@ -55,6 +49,15 @@ class Election(models.Model):
             return False
         return True
 
+    @property
+    def has_ended(self):
+        present = timezone.now()
+        if(self.end_date <=present):
+            return False
+        return True
+
+
+
     #@property
     def is_first_vote_for_this_election(self, user):
         # returneaza True daca userul NU a votat inca
@@ -65,7 +68,7 @@ class Election(models.Model):
         return True
 
     @property  # ca sa pot apela num_votes-proprietate, in loc de num_votes() -functie
-    #astfel o pot apela in templates (html)
+     #astfel o pot apela in templates (html)
     def num_votes(self):
         return self.vote_set.count()
 
@@ -95,16 +98,12 @@ class Election(models.Model):
                 d['percentage'] = float("{:.2f}".format(perc))
             res.append(d)
         #print (res)
-
+        print(res)
         return res, max_votes
 
     @property
     def num_voters(self):
         return self.voter_set.count()
-
-    @property
-    def description_bleached(self):
-        return bleach.clean(self.description, tags = bleach.ALLOWED_TAGS + ['p', 'h4', 'h5', 'h3', 'h2', 'br', 'u'])
 
 
 class Choice(models.Model):  # 1 Election are mai multe Choices
@@ -112,13 +111,10 @@ class Choice(models.Model):  # 1 Election are mai multe Choices
     choice_text = models.CharField(max_length = 200,
                                    validators=[MinLengthValidator(5, message ="Choice text should have at least 5 characters" ),
                                                RegexValidator(r'^[a-zA-Z0-9\s]+$', 'Enter a valid choice text!') ])
+    num_votes=models.IntegerField(default = 0)
 
     def __str__(self):
         return self.choice_text
-
-    @property
-    def num_votes(self):
-        return self.vote_set.count()  # nr de voturi primite de aceasta choice
 
 
 class Voter(models.Model):
@@ -126,16 +122,13 @@ class Voter(models.Model):
     user = models.ForeignKey(User, null = True, on_delete = models.CASCADE)
 
 
-
 class Vote(models.Model):  # ca un user sa NU poata vota de mai multe ori
     # models.PROTECT = daca sterg P(parinte), iar acesta are copii, nu il pot sterge (pe P)
     voter = models.OneToOneField(Voter, on_delete = models.CASCADE)  # sterg User=> sterg toate Votes asociate
     election = models.ForeignKey(Election, on_delete = models.CASCADE)  # sterg Election=> sterg toate Votes asociate
-    choice = models.ForeignKey(Choice, on_delete = models.CASCADE)  # sterg Choice=> sterg toate Votes asociate
-    cast_at = models.DateTimeField(auto_now_add = True, null = True)
+    cast_at = models.DateTimeField(auto_now_add = True, null= True)
     verified_at = models.DateTimeField(null = True)
     invalidated_at = models.DateTimeField(null = True)#este null daca este valid
-
     # alpha = models.IntegerField(default = 0)
     # beta = models.IntegerField(default = 0)
 
@@ -144,7 +137,7 @@ class AuditedBallot(models.Model):#retine doar voturile valide
     election = models.ForeignKey(Election, on_delete = models.CASCADE)
     text_vote = models.TextField(null = True)
     vote_hash = models.CharField(max_length = 200, null = True)
-    added_at = models.DateTimeField(auto_now_add = True, null = True)
+    added_at = models.DateTimeField(auto_now_add = True, null=True)
 
 
 class Trustee(models.Model):

@@ -20,7 +20,7 @@ def LoginView(request):
             #print(request.GET)
             login(request, user)
             #return HttpResponseRedirect(reverse('polls:home')) #home= name dat in urls din polls
-            return redirect('polls:index')  # home= name dat in urls din polls
+            return redirect('polls:home')  # home= name dat in urls din polls
         else:
             messages.error(request, 'Bad username or password',
                            extra_tags = 'alert alert-danger alert-dismissible fade show')

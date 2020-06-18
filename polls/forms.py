@@ -61,7 +61,7 @@ class EditElectionForm(forms.ModelForm):
         model.start_date = forms.DateTimeField()
         model.end_date = forms.DateTimeField()
         widgets = {
-            'election_title': forms.Textarea(attrs = {"class": "form-control", "rows": 3, "cols": 20}),
+            'election_title': forms.Textarea(attrs = {"class": "form-control", "rows": 2, "cols": 20}),
             # 'start_date':DateInput(),
             'isActive': forms.CheckboxInput()
             }

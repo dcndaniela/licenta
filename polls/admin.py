@@ -32,7 +32,6 @@ class ElectionAdmin(admin.ModelAdmin): # admin.ModelAdmin = clasa din care moste
         'owner',
         'election_title',
         'election_content',
-        'pub_date',
         'start_date',
         'end_date',
         'isActive',

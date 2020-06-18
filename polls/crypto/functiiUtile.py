@@ -1,5 +1,5 @@
 
-
+from django.utils import timezone
 
 def get_user_type(request):#ce tip de user este conectat acum
     if request.user.is_superuser:
@@ -29,7 +29,8 @@ def is_CNP_valid(cnp):
 
 def can_edit_Election(request,poll):
     #daca este owner + este Admin sau Staff + election NU a inceput => True
-    if (request.user == poll.owner) and  is_Admin_or_Staff(request) and  poll.has_not_started:
+    if (request.user == poll.owner) and  is_Admin_or_Staff(request) and  poll.has_not_started \
+        and timezone.now()<poll.start_date: #Nu se poate modifica daca s-a terminat de votat
         return True
     return False
 
@@ -40,7 +41,7 @@ def can_see_DetailView(request,poll):
 
 
 def main():
-    print('este valid:',is_CNP_valid("2990211385571"))
+    print('este valid:',is_CNP_valid("2990211385570"))
 
 
 if __name__ == "__main__":

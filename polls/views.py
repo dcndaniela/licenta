@@ -11,12 +11,15 @@ import hashlib
 
 # !!! Ce trimit in context este vizibil in template(.html) !!!!!
 
+def HomeView(request):
+    return render(request, 'polls/home.html',{})
 
 @login_required
 def IndexView(request):
     is_allowed = request.user.is_staff
     searchContent = ""  # ce contine initial search-ul
-    user_current = functiiUtile.get_user_type(request)  # uuid
+    #user_current = functiiUtile.get_user_type(request)  # uuid
+
 
     if functiiUtile.is_Admin_or_Staff(request):
         polls = Election.objects.all().order_by('start_date')  # Admin ul sau Stuff ul vede toate polls
@@ -33,6 +36,7 @@ def IndexView(request):
         # headline(adica election_title) + __ + metoda folosita(adica icontains)
         polls = polls.filter(election_title__icontains = searchContent)
 
+    prezent=timezone.now()
     # asezare in pagina (cate 4 polls)
     paginator = Paginator(polls, 4)
     page = request.GET.get('page', 1)
@@ -50,7 +54,7 @@ def IndexView(request):
 
     context = {
         'polls': polls_paginated, 'params': params, 'searchContent': searchContent, 'is_allowed': is_allowed,
-        'user_current': user_current
+        'prezent':prezent
         }
     return render(request, 'polls/index.html', context)
 
@@ -75,7 +79,7 @@ def AddElectionView(request):
                 return render(request, 'polls/add.html', context)
 
             if new_election.end_date <= new_election.start_date:
-                messages.error(request, 'End date can not be smaller than start date!!',
+                messages.error(request, 'End date can not be smaller or equal to start date!!',
                                extra_tags = 'alert alert-danger alert-dismissible fade show')
                 context = {'form': form}
                 return render(request, 'polls/add.html', context)
@@ -147,7 +151,7 @@ def EditElectionView(request, poll_id):
                 return redirect('polls:edit', poll_id = poll_id)
 
             if poll.end_date <= poll.start_date:
-                messages.error(request, 'End date can not be smaller than start date!!',
+                messages.error(request, 'End date can not be smaller or equal to start date!!',
                                extra_tags = 'alert alert-danger alert-dismissible fade show')
                 return redirect('polls:edit', poll_id = poll_id)
 
@@ -219,7 +223,7 @@ def AddChoiceView(request, poll_id):
 def EditChoiceView(request, choice_id):
     choice = get_object_or_404(Choice, id = choice_id)
     poll = get_object_or_404(Election, id = choice.election.id)
-    if request.user != poll.owner or (not request.user.is_staff) or (not poll.has_not_started):
+    if not functiiUtile.can_edit_Election(request, poll):
         messages.error(request, 'You are not allowed to edit this choice!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
@@ -324,7 +328,7 @@ def VotesIndexView(request, poll_id):
 def ResultsView(request, poll_id):
     ok = 0  # inca nu am sters Votes
     poll = get_object_or_404(Election, id = poll_id)
-
+    #print('voturi election=',poll.vote_set.count())
     if not poll.can_see_results:
         messages.error(request, 'Election is not finished! You can not see the results!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
@@ -332,38 +336,35 @@ def ResultsView(request, poll_id):
 
     # is_first_vote_for_this_election = poll.is_first_vote_for_this_election(request.user)
     results, max_votes = poll.get_results_dict()
+    print('rezultate=',results)
     winners = []
     result_names = ""
     for choice in poll.choice_set.all():
         if choice.num_votes == max_votes:
             winners.append(choice.choice_text)
-            result_names = result_names + choice.choice_text + ","
+            result_names = result_names + choice.choice_text + "  "
 
-    poll.result = result_names
-    poll.result_released_at = timezone.now()
-    poll.save()
-
-    print('winners=', winners)
     number_of_winners = len(winners)
     ok = 0  # este 0 daca am mai multi castigatori
     if number_of_winners == 1:
         ok = 1  # este 1 daca am 1 singur castigator
-    # print (results)
-    # for key in results:
-    #     if key=='num_votes':
-    #         if results[]
-    # if ok ==1:
-    #     return redirect('polls:votes_index',poll_id = poll_id)
-    # Vote.objects.filter( election = poll).delete()#sterg voturile at cand se publica rezultatul(le salvez doar in AuditedBallot
+
+    if(ok==1):#1 castigator
+        poll.result = result_names
+    else:
+        poll.result="Remiza: "+result_names
+
+    poll.result_released_at = timezone.now()
+    poll.save()
+
     context = {'election': poll, 'results': results, 'winners': winners, 'ok': ok}
-    ok = 1
     return render(request, 'polls/results.html', context)
 
 
 @login_required
 def vote(request, poll_id):
     election = get_object_or_404(Election, pk = poll_id)
-    # daca inca nu a inceput, s-a sfarsit sau nu este pubica => NU poate vota
+    # daca inca nu a inceput, s-a sfarsit sau nu este publica => NU poate vota
     if election.can_see_results:
         messages.error(request, 'Election is closed! You can not vote anymore!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
@@ -372,7 +373,7 @@ def vote(request, poll_id):
     if election.start_date > timezone.now() or election.isActive == False:
         messages.error(request, 'Election is not opened yet!',
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
-        return redirect('polls:index')
+        return redirect('polls:detail', poll_id = poll_id)
 
     # is_first_vote_for_this_election=election.is_first_vote_for_this_election(request.user)
     # if not is_first_vote_for_this_election:
@@ -390,8 +391,12 @@ def vote(request, poll_id):
         cast_at = timezone.now()
         choice = Choice.objects.get(id = choice_id)
 
-        # m=int(choice_id)+1 #pun +1 pt ca nu gasea inversul lui 0 in grup
-        m = int(hashlib.sha256(choice_id.encode()).hexdigest(), 16)
+        if int(choice_id) % int(election.p) ==0:
+            m_modulo= (int(choice_id) +1) % int(election.p) #pun +1 pt ca nu gasea inversul lui 0 in grup
+        else:
+            m_modulo=int(choice_id )% int(election.p)
+
+        m = int(hashlib.sha256(str(m_modulo).encode()).hexdigest(), 16)
         # pentru fiecare vot nou se geneereaza o pereche (pk,sk)
         pk_vote, sk_vote = algoritmi.generateEG_pk_sk(election.p, election.q, election.g)
         alpha_vote, beta_vote, randomness_vote = algoritmi.generateEG_alpha_beta_randomness(election.p, election.q,
@@ -404,7 +409,7 @@ def vote(request, poll_id):
 
         voter = Voter(election = election, user = request.user)
         voter.save()
-        new_vote = Vote(voter = voter, election = election, choice = choice, cast_at = cast_at)
+        new_vote = Vote(voter = voter, election = election, cast_at = cast_at)
         new_vote.save()
 
         trustee1 = get_object_or_404(Trustee, name = 'Trustee1', election = election)
@@ -424,10 +429,14 @@ def vote(request, poll_id):
         ok = False
         verified_at = timezone.now()
         new_vote.verified_at = verified_at
+        new_vote.save()
         print('validare Helios=', validare_Helios, 'validare_trustee1=', validare_trustee1,
               'validare_trustee2=', validare_trustee2, 'trustee1.posk =', trustee1.posk, 'trustee2.posk=',
               trustee2.posk)
         if validare_Helios and validare_trustee1 and validare_trustee2:  # and trustee1.posk and trustee2.posk:
+
+            choice.num_votes=choice.num_votes+1#creste nr de voturi pentru aceasta choice
+            choice.save()
 
             vote_hash_ = hashlib.sha256(
                 (str(sk_vote) + ',' + str(alpha_vote) + ',' + str(beta_vote) + ',' + str(randomness_vote) + ',' + str(
@@ -438,9 +447,10 @@ def vote(request, poll_id):
                                            vote_hash = vote_hash_, added_at = timezone.now())
             audited_ballot.save()
 
-            messages.success(request, 'Your vote was validated by our Trustees! Your vote has been added successfully: '
-                                      'choice= {} vote_hash = {},alpha= {} ,beta= {},randomness= {} '
-                             .format(choice.choice_text, audited_ballot.vote_hash, alpha_vote, beta_vote,
+            messages.success(request, 'Your vote for election {} was validated by our Trustees! Your vote has been added successfully: '
+                                      'choice= {} vote_hash = {},sk_vote={}, alpha= {} ,beta= {},randomness= {} '
+                             .format(election.election_title,choice.choice_text, audited_ballot.vote_hash,
+                                     sk_vote,alpha_vote, beta_vote,
                                      randomness_vote),
                              extra_tags = 'alert alert-success alert-dismissible fade show')
             ok = True
