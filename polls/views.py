@@ -11,8 +11,11 @@ import hashlib
 
 # !!! Ce trimit in context este vizibil in template(.html) !!!!!
 
+
 def HomeView(request):
     return render(request, 'polls/home.html',{})
+
+
 
 @login_required
 def IndexView(request):
@@ -306,6 +309,12 @@ def VotesIndexView(request, poll_id):
 
     votes_number = audited_ballots.count()
 
+    searchContent = ""
+    if 'searchCastedVote' in request.GET:
+        searchContent = request.GET['searchCastedVote']  # ce a tastat User ul in search
+        # headline(adica election_title) + __ + metoda folosita(adica icontains)
+        audited_ballots = audited_ballots.filter(vote_hash__icontains = searchContent)
+
     # cate 4 votes pe pagina
     paginator = Paginator(audited_ballots, 4)
     page = request.GET.get('page', 1)
@@ -319,7 +328,7 @@ def VotesIndexView(request, poll_id):
 
     context = {
         'audited_ballots': audited_ballots_paginated, 'poll': poll, 'exists_votes': exists_votes,
-        'votes_number': votes_number
+        'votes_number': votes_number, 'searchContent': searchContent,
         }
     return render(request, 'polls/votes_index.html', context)
 

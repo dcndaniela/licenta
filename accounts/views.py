@@ -1,12 +1,13 @@
 import axes
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib import messages
 from django.urls import reverse
 from . forms import RegisterForm
 from accounts.models import CustomUser as User
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
 # Create your views here.
 
 
@@ -55,6 +56,25 @@ def RegisterView(request):
 def FailedLogInView(request):
     return render(request, 'accounts/failed_login.html',{})
 
+
+@login_required
+def ChangePasswordView(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+
+        if form.is_valid():
+            user=form.save()
+            update_session_auth_hash(request, user)#User-ul ramane logat dupa ce isi schimba parola
+            messages.success(request, 'Password successfully changed!',
+                             extra_tags = 'alert alert-success alert-dismissible fade show')
+            return redirect('polls:home')
+        else:
+            messages.error(request, 'Please correct the error below.',
+                           extra_tags = 'alert alert-danger alert-dismissible fade show')
+            return redirect('accounts:change_password')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'accounts/change_password.html', {'form': form})
 
 
 

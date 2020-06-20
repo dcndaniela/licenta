@@ -10,7 +10,7 @@
 </div>
 
 <div class="container">
-    <h1 class="text-center">Add a new Election!</h1>
+    <h2 class="text-center">Create a new election</h2>
     <br> <br>
     <div class="row">
         <div class="col-sm-6 offset-sm-3">
@@ -31,7 +31,9 @@
                                   {% for field in form %}
                                         <div class="form-group">
                                             <span style="color: red">{{ field.errors }} </span> <!-- am folosit 'Working with form templates' din documentation -->
-                                            {{ field.label_tag }}
+
+                                            <span style="color: darkgreen"><b>{{ field.label_tag }}</b></span>
+                                            <br>
                                             {{ field }}
                                         </div>
                                   {% endfor %}

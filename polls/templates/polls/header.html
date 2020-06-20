@@ -12,37 +12,50 @@
      </li>
        <li class="nav-item">
                      <a class="nav-link disabled" href="#"></a>
-             </li>
+        </li>
        <form class="form-inline my-2 my-lg-0" >
                   <input aria-label="Search" class="form-control mr-sm-2 "
                          name="searchElection" placeholder="Search"
                          type="text"
                          value="{{searchContent}}"> <!-- ca sa apara in Search ce a tastat User ul -->
                   <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search election</button>
-                </form>
+       </form>
+
+
    </ul>
 
 
-<div class="navbar-nav ml-auto">
+<ul class="navbar-nav ml-auto">
+    &nbsp &nbsp <!-- pentru TABs -->
+       <li class="nav-item dropdown" style="text-align: right">
+               <a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#"
+                  id="navbarDropdown" role="button" style="color: darkcyan">
+
+                   {% if request.user.is_authenticated %}
+                   <i class="fas fa-person-booth"></i>
+                       {% if request.user.is_superuser %}
+                             Administrator
+                       {% elif request.user.is_staff%}
+                             Staff
+                       {% else %}
+                             User
+                       {% endif %}
+                   {%endif%}
+
+               </a>
+               <div aria-labelledby="navbarDropdown" class="dropdown-menu">
+                 <a class="dropdown-item" href="{% url 'accounts:change_password' %}">Change password</a>
+               </div>
+       </li>
 
     {% if request.user.is_authenticated %}
         <a class="nav-item nav-link" href="{% url 'accounts:logout' %}">Logout</a>
     {% else %}
     <a class="nav-item nav-link" href="{% url 'accounts:login' %}">Login</a>
     {% endif %}
-</div>
+</ul>
 
-
-&nbsp &nbsp <!-- pentru TABs -->
-{% if request.user.is_authenticated %}
-    {% if request.user.is_superuser %}
-    <a href=""><i class="fas fa-person-booth"></i>Administrator </a>
-    {% elif request.user.is_staff%}
-    <a href=""><i class="fas fa-person-booth"></i>Staff</a>
-    {% else %}
-        <a href=""><i class="fas fa-person-booth"></i>User</a>
-    {% endif %}
-{%endif%}
+     <br><br>
 
  </div>
 </nav>

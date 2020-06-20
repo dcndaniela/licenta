@@ -1,11 +1,7 @@
 from django import forms
 from polls.models import Election, Choice
-from django.contrib.admin import widgets
-from django.contrib.admin.widgets import AdminSplitDateTime
 from django.core.validators import MinLengthValidator
 from django.core.validators import RegexValidator
-from django.utils import timezone
-from django.core.exceptions import ValidationError
 
 
 class DateInput(forms.DateTimeField):
@@ -24,7 +20,7 @@ class ElectionForm(forms.ModelForm): #acest form il import in views.py
                                   MinLengthValidator(5, message = "Choice text should have at least 5 characters!"),
                                   RegexValidator(r'^[a-zA-Z0-9\s]+$', 'Enter a valid valid choice text!')]
                               )
-
+    #start_date=forms.CharField(widget=forms.Textarea)
     class Meta: #pt a defini datele actuale ale clasei
         model= Election
         fields=['election_title','election_content','start_date','end_date','isActive']
@@ -32,8 +28,10 @@ class ElectionForm(forms.ModelForm): #acest form il import in views.py
         model.start_date = forms.DateTimeField()
         model.end_date = forms.DateTimeField()
         widgets= {
-            'election_title':forms.Textarea(attrs = {"class":"form-control", "rows":2,"cols":10}),
-           # 'start_date':DateInput(),
+            'election_title':forms.Textarea(attrs = {"class":"form-control", "rows":1,"cols":10}),
+            'election_content': forms.Textarea(attrs = {"class":"form-control", "rows":1,"cols":10}),
+            # 'start_date': forms.DateTimeField(),
+            # 'end_date': forms.DateTimeField(),
             'isActive':forms.CheckboxInput()
                 }
     #
@@ -61,7 +59,8 @@ class EditElectionForm(forms.ModelForm):
         model.start_date = forms.DateTimeField()
         model.end_date = forms.DateTimeField()
         widgets = {
-            'election_title': forms.Textarea(attrs = {"class": "form-control", "rows": 2, "cols": 20}),
+            'election_title': forms.Textarea(attrs = {"class": "form-control", "rows": 1, "cols": 10}),
+            'election_content': forms.Textarea(attrs = {"class": "form-control", "rows": 1, "cols": 10}),
             # 'start_date':DateInput(),
             'isActive': forms.CheckboxInput()
             }

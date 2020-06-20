@@ -7,6 +7,18 @@
 <div class="container">
     <div class="row">
         <div class="col-sm-8 offset-sm-2">
+
+            {% if messages %}
+                                   {% for message in messages %}
+                                              <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
+                                                  {{ message }}
+                                                  <button aria-label="Close" class="close" data-dismiss="alert" type="button">
+                                                      <span aria-hidden="true">&times;</span>
+                                                    </button> <!-- adaug acest buton ca sa inchid mesajul de alerta -->
+                                              </div>
+                                   {% endfor %}
+                            {% endif %}
+
             <div id="home-content">
                 <div style="text-align: center">
                 <h1 style="color: darkcyan">Voote<b>5</b></h1>
