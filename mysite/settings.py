@@ -31,14 +31,14 @@ INSTALLED_APPS = [
     'accounts',
     'polls',
     'django.contrib.staticfiles',
-    'axes',
+   # 'axes',
 ]
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
     # AxesBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
-    'axes.backends.AxesBackend',
+   # 'axes.backends.AxesBackend',
 
     # Django ModelBackend is the default authentication backend.
     'django.contrib.auth.backends.ModelBackend',
@@ -53,12 +53,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'axes.middleware.AxesMiddleware',
+    #'axes.middleware.AxesMiddleware',
+
 ]
 
 ROOT_URLCONF = 'mysite.urls'
 
-AXES_ONLY_USER_FAILURES=True #sa blocheze in functie de CNP-ul Userului, nu si in functie de IP
+#AXES_ONLY_USER_FAILURES=True #sa blocheze in functie de CNP-ul Userului, nu si in functie de IP
 # AXES_LOCKOUT_TEMPLATE="accounts/failed_login.html"
 # AXES_LOCKOUT_URL="/accounts/failed_login/"
 # LOCKOUT_CALLABLE="hei"

@@ -7,7 +7,7 @@ app_name = 'polls'
 urlpatterns = [
 #informatiile din ruta sunt pasate in View din views.py
 
-    path('', views.HomeView, name='home'),
+    path('home/', views.HomeView, name='home'),
     # ex: /polls/index
     path('index/', views.IndexView, name='index'),
 

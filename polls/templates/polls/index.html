@@ -38,7 +38,14 @@
 <!-- pot pune orcie in loc de =True pt ca practic verific daca se afla in dictionary(adica daca a fost apasat)-->
                 A-Z  <!-- href="?title=True" ca sa fac btn-warning -->
             </a>
-        {%if is_allowed %} <!-- doar staff ul poate crea Elections -->
+
+            {%if is_allowed %}
+            <a class="btn btn-{% if 'creator' in request.GET %}warning{%else%}primary{%endif%}"
+                          href="?creator=True" style="margin-bottom: 5px">
+                <i class="fas fa-chalkboard-teacher"></i>  Owner <!-- elections create de el -->
+            </a>
+
+         <!-- doar staff ul sau admin ul poate crea Elections -->
             <a class="btn btn-primary" href="{% url 'polls:add' %}" style="margin-bottom: 5px">
                 Add
                 <i class="fa fa-plus"></i> <!-- + este luat din fontawesome.com -> icons -->

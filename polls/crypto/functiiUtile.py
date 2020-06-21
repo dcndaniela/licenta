@@ -1,5 +1,5 @@
-
 from django.utils import timezone
+
 
 def get_user_type(request):#ce tip de user este conectat acum
     if request.user.is_superuser:

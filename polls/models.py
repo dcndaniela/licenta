@@ -1,8 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from accounts.models import CustomUser as User
-from django.core.validators import MinLengthValidator
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinLengthValidator
 
 
 

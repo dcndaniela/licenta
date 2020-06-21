@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Election,Choice, AuditedBallot, Vote, Voter, Trustee
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from accounts.models import CustomUser
 
 #admin.site.register(Election)  #ca sa fie vizibile pt Admin

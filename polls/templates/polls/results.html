@@ -6,7 +6,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-sm-6 offset-sm-4">
+        <div class="col-sm-8 offset-sm-3">
             {% if messages %}
                            {% for message in messages %}
                                       <div %} %} class="{{ message.tags }}" endif if message.tags {% {%>
@@ -18,21 +18,40 @@
                            {% endfor %}
                     {% endif %}
 
-            <h1>{{election}}</h1>
+            <h2 >Results for election
+                <a href="{%url 'polls:detail' election.id %}" style="color:rosybrown">{{election.election_title}} </a>
+            </h2>
+            <br>
 
-            <br><br>
-<!--            <ul>-->
-<!--                {% for choice in election.choice_set.all %}-->
-<!--                <li>{{choice.choice_text}} - {{choice.num_votes}} </li>-->
-<!--                {% endfor %}-->
-<!--            </ul>-->
+            <h5 style="color: mediumvioletred; text-align: center">
+                   {% if ok%}
+                          <i class="fas fa-trophy"></i> &nbsp
+                           The winner is
+                               {% for winner in winners %}
+                                        <b> {{winner}} </b>
+                               {%endfor%}
+                           &nbsp
+                           <i class="fas fa-trophy"></i>
+                <br> <br>
+                   {% else %}
+                           Remise! The vote should be reload for:
+                            <br>
+                           {% for winner in winners %}
+                                <b>{{winner}}</b>
+                                <br>
+                               {%endfor%}
+                                <br><br>
+                   {%endif%}
 
+            </h5>
+<br>
 
                 {% for choice_dict in results%}
             <div class="row">
-                <div class="col-sm-6">
+                <div class="col-sm-8">
 <!--                           {%if choice_dict.percentage %}-->
-                             {{choice_dict.text}}- {{choice_dict.num_votes}} votes
+                            <span style="color: darkcyan"><b>{{choice_dict.text}}</b>- {{choice_dict.num_votes}} votes
+                            </span>
 <!--                           {% endif %}-->
                            <div class="progress mb-1">
                                     <div aria-valuemax="100"
@@ -40,10 +59,10 @@
                                          {{choice_dict.percentage}}" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                                          style="width:{{choice_dict.percentage}}%;">{{choice_dict.percentage}}%
                                     </div>
-                                  </div>
+                           </div>
                 </div>
             </div>
-
+<br>
                    {% endfor %}
 <br><br>
 
@@ -54,17 +73,7 @@
 
             <br><br>
 
-            <div style="text-align: center">
-                {% if ok%}
-                The winner is: {{winners}}
-                {% else %}
-                Remise: The vote should be reload for
-                {% for winner in winners %}
-                {{winner}}
-                {%endfor%}
-                {%endif%}
 
-            </div>
 
         </div>
     </div>

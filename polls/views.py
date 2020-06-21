@@ -19,7 +19,7 @@ def HomeView(request):
 
 @login_required
 def IndexView(request):
-    is_allowed = request.user.is_staff
+    is_allowed = request.user.is_staff or request.user.is_superuser
     searchContent = ""  # ce contine initial search-ul
     #user_current = functiiUtile.get_user_type(request)  # uuid
 
@@ -33,6 +33,9 @@ def IndexView(request):
 
     if 'title' in request.GET:  # ordonare crescator dupa titlu
         polls = polls.order_by('election_title')
+
+    if 'creator' in request.GET: #elections pe care le-a creat
+        polls=polls.filter(owner=request.user)
 
     if 'searchElection' in request.GET:
         searchContent = request.GET['searchElection']  # ce a tastat User ul in search
@@ -467,8 +470,8 @@ def vote(request, poll_id):
         else:
             invalidated_at = timezone.now()
             messages.error(request,
-                           'Something went wrong! Your vote has NOT been casted! '
-                           'Please retry! If the problem persists, please contact us on voote5@voote5.com!',
+                           'Something went wrong! Your vote has NOT been casted!'
+                           'Please retry! If thprme problem persists, please contact us on voote5@voote5.com!',
                            extra_tags = 'alert alert-danger alert-dismissible fade show')
             new_vote.invalidated_at = invalidated_at
             new_vote.save()

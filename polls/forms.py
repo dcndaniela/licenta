@@ -1,7 +1,6 @@
 from django import forms
 from polls.models import Election, Choice
-from django.core.validators import MinLengthValidator
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinLengthValidator
 
 
 class DateInput(forms.DateTimeField):
@@ -83,4 +82,5 @@ class ChoiceForm(forms.ModelForm):
     class Meta:
         model=Choice
         fields=['choice_text']
+
 
