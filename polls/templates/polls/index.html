@@ -5,9 +5,14 @@
 <!--<i aria-hidden="true" class="fa fa-user"></i>{{user_current}}-->
 
 <div style="text-align: left">
-    <i class="far fa-clock" style="color:#6600FF"></i>
+    <i class="far fa-clock"></i>
+<!--    <iframe allowTransparency="true"-->
+<!--            frameborder="0" height="18" src="http://free.timeanddate.com/clock/i7bxi1s8/n1440/tlde/fc60f/tct/pct/ftb/tt0/tw0/tm1/ts1/ta1/tb2" width="157">-->
+
+<!--    </iframe>-->
     <iframe allowTransparency="true"
-            frameborder="0" height="18" src="http://free.timeanddate.com/clock/i7bxi1s8/n1440/tlde/fc60f/tct/pct/ftb/tt0/tw0/tm1/ts1/ta1/tb2" width="157"></iframe>
+            frameborder="0" height="18" src="http://free.timeanddate.com/clock/i7bxi1s8/tlde/fc1e7cce/tct/pct/ftb/tt0/tw0/tm1/td2/th1/ts1/ta1/tb2" width="157"></iframe>
+
 </div>
 
 <br>
@@ -55,6 +60,7 @@
                 {%for poll in polls%}
                            <li class="list-group-item " >
                                <a  href="{%url 'polls:detail' poll.id %}"><strong>{{poll}} </strong></a>
+
                                {% if request.user == poll.owner and request.user.is_staff or request.user.is_superuser and poll.has_not_started and not poll.has_ended %}
                                               <a class="float-right" href="{%url 'polls:edit' poll.id %}">
                                               <i aria-hidden="true" class="fa fa-pencil"></i></a>
@@ -64,11 +70,21 @@
                                <span style="color: darkcyan">From: <i>{{poll.start_date|date:"d M Y h:i A"}}</i>
                                                  To: <i>{{poll.end_date|date:"d M Y h:i A"}}</i>
                                </span>
-                               <p style="color: chocolate"> Last time modified: <i>{{poll.modified_at|date:"d M Y h:i A"}}</i></p>
+                               <p > Last time modified: <i>{{poll.modified_at|date:"d M Y h:i A"}}</i></p>
                                {% if poll.can_see_results  %}
                                <a class="float-right" href="{%url 'polls:results' poll.id %}">
+
                                <i aria-hidden="true" class="fa fa-bar-chart"></i>Results</a>
                                {%endif%}
+
+                              <span>
+                                     {% if poll.isActive  %}
+                                  <small> <b> published </b></small>
+                                     {% else %}
+                                            <small><b> unpublished </b></small>
+                                     {%endif%}
+                              </span>
+
                            </li>
                 {%endfor%}
             </ul>

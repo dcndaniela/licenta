@@ -19,7 +19,7 @@
                    {% endfor %}
             {% endif %}
 
-            <div style="text-align: center;color: darkblue" > Currently are {{votes_number}} casted votes</div>
+            <div style="text-align: center;" > Currently are {{votes_number}} casted votes</div>
 <br>
 
             {% if votes_number %}
@@ -33,7 +33,7 @@
             {% endif %}
 <br>
             <ul class="list-group">
-                           {%for ab in audited_ballots%}
+                           {%for ab in verified_votes%}
                                       <li class="list-group-item " style="background-color: lavender " >
                                           <p style="color: darkcyan">Vote hash: {{ab.vote_hash}}</p>
                                           <span>Added at: {{ab.added_at|date:"d-M-Y h:i:s A"}}</span>
@@ -48,25 +48,25 @@
 
 
 <!-- pentru paginare:-->
-{% if audited_ballots.has_other_pages %}
+{% if verified_votes.has_other_pages %}
   <ul class="pagination">
-    {% if audited_ballots.has_previous %}
+    {% if verified_votes.has_previous %}
 <!--      pun &{{params}} pt ca toate paginile sa fie sortate alfabetic at cand este selectat A-Z-->
-      <li><a href="?page={{ audited_ballots.previous_page_number }}&{{params}}">&laquo;</a></li>
+      <li><a href="?page={{ verified_votes.previous_page_number }}&{{params}}">&laquo;</a></li>
     {% else %}
       <li class="disabled"><span>&laquo;</span></li>
     {% endif %}
 
-    {% for i in audited_ballots.paginator.page_range %}
-      {% if audited_ballots.number == i %}
+    {% for i in verified_votes.paginator.page_range %}
+      {% if verified_votes.number == i %}
         <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
       {% else %}
         <li><a href="?page={{ i }}&{{params}}">{{ i }}</a></li>
       {% endif %}
     {% endfor %}
 
-    {% if audited_ballots.has_next %}
-      <li><a href="?page={{ audited_ballots.next_page_number }}&{{params}}">&raquo;</a></li>
+    {% if verified_votes.has_next %}
+      <li><a href="?page={{ verified_votes.next_page_number }}&{{params}}">&raquo;</a></li>
     {% else %}
       <li class="disabled"><span>&raquo;</span></li>
     {% endif %}

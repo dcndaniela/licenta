@@ -1,18 +1,14 @@
 from django.contrib import admin
-from .models import Election,Choice, AuditedBallot, Vote, Voter, Trustee
+from .models import Election,Choice, ValidVote, Vote,  Trustee
 from django.contrib.auth.models import Group
 from accounts.models import CustomUser
 
-#admin.site.register(Election)  #ca sa fie vizibile pt Admin
-#admin.site.register(Choice)#ca sa fie vizibile pt Admin
 admin.site.unregister(Group)
-admin.site.register(CustomUser)
-admin.site.register(AuditedBallot)
+admin.site.register(CustomUser) #ca sa fie vizibile pt Admin
+admin.site.register(ValidVote)
 admin.site.register(Vote)
-admin.site.register(Voter)
 admin.site.register(Choice)
 admin.site.register(Trustee)
-
 
 admin.site.site_header='Admin Dashboard'
 
@@ -41,7 +37,5 @@ class ElectionAdmin(admin.ModelAdmin): # admin.ModelAdmin = clasa din care moste
         'q',
         'g',
         )
-
-#admin.site.register(User, electionAdmin)
 
 admin.site.register(Election, ElectionAdmin)

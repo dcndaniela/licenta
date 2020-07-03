@@ -15,8 +15,6 @@ class Election(models.Model):
                                                     RegexValidator(r'^[a-zA-Z0-9\s:?.]+$', 'Enter a valid election content.') ])
     created_at = models.DateTimeField(default = timezone.now, editable = False)#cand a fost creata
     modified_at = models.DateTimeField(auto_now_add=True,null=True)
-    election_hash=models.CharField(max_length = 200, null = True)
-    election_tinyhash = models.CharField(max_length = 50, null = True, unique = True)
 
     start_date = models.DateTimeField('Start date(yyyy-mm-dd hh:mm)',null = True)  # setez default
     end_date = models.DateTimeField('End date(yyyy-mm-dd hh:mm)',null = True)
@@ -60,16 +58,15 @@ class Election(models.Model):
     #@property
     def is_first_vote_for_this_election(self, user):
         # returneaza True daca userul NU a votat inca
-        voter=Voter.objects.filter(user=user).filter(election=self)
-        print(voter)
-        if voter.exists():
+        vote=Vote.objects.filter(voter=user).filter(election=self)
+        if vote.exists():
             return False
         return True
 
     @property  # ca sa pot apela num_votes-proprietate, in loc de num_votes() -functie
      #astfel o pot apela in templates (html)
     def num_votes(self):
-        return self.vote_set.count()
+        return self.verifiedvote_set.count()
 
     def get_results_dict(self):
         # returneaza o lista de obiecte de forma
@@ -96,13 +93,8 @@ class Election(models.Model):
                 perc = choice.num_votes / self.num_votes * 100
                 d['percentage'] = float("{:.2f}".format(perc))
             res.append(d)
-        #print (res)
         print(res)
         return res, max_votes
-
-    @property
-    def num_voters(self):
-        return self.voter_set.count()
 
 
 class Choice(models.Model):  # 1 Election are mai multe Choices
@@ -116,23 +108,17 @@ class Choice(models.Model):  # 1 Election are mai multe Choices
         return self.choice_text
 
 
-class Voter(models.Model):
-    election = models.ForeignKey(Election, on_delete = models.CASCADE)
-    user = models.ForeignKey(User, null = True, on_delete = models.CASCADE)
-
 
 class Vote(models.Model):  # ca un user sa NU poata vota de mai multe ori
     # models.PROTECT = daca sterg P(parinte), iar acesta are copii, nu il pot sterge (pe P)
-    voter = models.OneToOneField(Voter, on_delete = models.CASCADE)  # sterg User=> sterg toate Votes asociate
+    voter = models.ForeignKey(User, on_delete = models.CASCADE)  # sterg User=> sterg toate Votes asociate
     election = models.ForeignKey(Election, on_delete = models.CASCADE)  # sterg Election=> sterg toate Votes asociate
     cast_at = models.DateTimeField(auto_now_add = True, null= True)
     verified_at = models.DateTimeField(null = True)
     invalidated_at = models.DateTimeField(null = True)#este null daca este valid
-    # alpha = models.IntegerField(default = 0)
-    # beta = models.IntegerField(default = 0)
 
 
-class AuditedBallot(models.Model):#retine doar voturile valide
+class ValidVote(models.Model):#retine doar voturile valide
     election = models.ForeignKey(Election, on_delete = models.CASCADE)
     text_vote = models.TextField(null = True)
     vote_hash = models.CharField(max_length = 200, null = True)
@@ -144,5 +130,4 @@ class Trustee(models.Model):
     name = models.CharField(max_length = 200, null = True)
     public_key = models.IntegerField(default = 0)
     secret_key = models.IntegerField(default = 0)
-    # False= sk a fost generata incorect; True=sk a fost generata corect
-    posk = models.BooleanField(default = False)
+

@@ -7,13 +7,14 @@
        <li class="nav-item">
                <a class="nav-link disabled" href="#"></a>
        </li>
+       {% if request.user.is_authenticated %}
      <li class="nav-item">
        <a class="nav-link" href="{% url 'polls:index' %}">Elections</a> <!-- polls=namespace-ul, index= name dat in polls.urls -->
      </li>
        <li class="nav-item">
                      <a class="nav-link disabled" href="#"></a>
         </li>
-       {% if request.user.is_authenticated %}
+
        <form class="form-inline my-2 my-lg-0" >
                   <input aria-label="Search" class="form-control mr-sm-2 "
                          name="searchElection" placeholder="Search"
@@ -35,9 +36,9 @@
 
                    <i class="fas fa-person-booth"></i>
                        {% if request.user.is_superuser %}
-                             Administrator
+                            Administrator
                        {% elif request.user.is_staff%}
-                             Staff
+                             Manager
                        {% else %}
                              User
                        {% endif %}
@@ -49,10 +50,15 @@
        </li>
     {%endif%}
 
+    {% if not request.user.is_authenticated %}
+        <a class="nav-item nav-link" href="{% url 'accounts:register' %}" ><b>Register</b></a>
+    &nbsp &nbsp
+    {% endif %}
+
     {% if request.user.is_authenticated %}
-        <a class="nav-item nav-link" href="{% url 'accounts:logout' %}">Logout</a>
+        <a class="nav-item nav-link" href="{% url 'accounts:logout' %}"><b> Logout </b></a>
     {% else %}
-    <a class="nav-item nav-link" href="{% url 'accounts:login' %}">Login</a>
+    <a class="nav-item nav-link" href="{% url 'accounts:login' %}"><b> Login</b></a>
     {% endif %}
 </ul>
 

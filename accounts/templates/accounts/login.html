@@ -20,17 +20,18 @@
                 <form action="" method="post"> <!-- action="", adica blink(ramane pe aceeasi pagina) -->
                 {% csrf_token %}
                   <div class="form-group">
-                    <label for="username">CNP</label>
-                    <input class="form-control" name="username" placeholder="Enter username" type="text">
+                    <label for="username" ><b>CNP</b></label>
+                    <input class="form-control" name="username" placeholder="Enter CNP" type="password">
                     <small class="form-text text-muted" id="emailHelp">We'll never share your personal data with anyone else.</small>
                   </div>
 
                   <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password"><b>Password</b></label>
                     <input class="form-control" name="password" placeholder="Enter password" type="password">
                   </div>
                <br>
                   <button class="btn btn-primary" type="submit">Submit</button>
+                       &nbsp &nbsp &nbsp &nbsp<small ><i>Forgot your password? </i><b>Contact us!</b></small>
                 </form>
 
                 <p> Need an account? <a href="{% url 'accounts:register' %}"> Register Here! </a> </p>

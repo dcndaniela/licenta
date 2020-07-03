@@ -19,11 +19,11 @@
                     {% endif %}
 
             <h2 >Results for election
-                <a href="{%url 'polls:detail' election.id %}" style="color:rosybrown">{{election.election_title}} </a>
+                <a href="{%url 'polls:detail' election.id %}" style="color: gray">{{election.election_title}} </a>
             </h2>
             <br>
 
-            <h5 style="color: mediumvioletred; text-align: center">
+            <h5 style="color: rosybrown; text-align: center">
                    {% if ok%}
                           <i class="fas fa-trophy"></i> &nbsp
                            The winner is
@@ -66,9 +66,9 @@
                    {% endfor %}
 <br><br>
 
-            <a href="{% url 'polls:votes_index' election.id %}" style="color: darkviolet" >
+            <a href="{% url 'polls:votes_index' election.id %}" style="color: lightseagreen" >
                          <i aria-hidden="true" class="fa fa-envelope"></i> <!-- + este luat din fontawesome.com -> icons -->
-                          Casted Votes->
+                <b> Casted Votes-></b>
                        </a>
 
             <br><br>
