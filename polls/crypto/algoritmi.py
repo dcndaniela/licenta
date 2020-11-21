@@ -19,7 +19,7 @@ def generateEG_p_q_g():
     p=getRandom_p()
     q=int((p-1)/2)
     g=getRandomGenerator_g(p,q)
-    print('p=',p,'q=',q,'g=',g)
+    # print('p=',p,'q=',q,'g=',g)
     return p, q, g
 
 def generateEG_pk_sk(p,q,g):
@@ -27,27 +27,13 @@ def generateEG_pk_sk(p,q,g):
     pk = pow(g, sk, p)
     return pk, sk
 
-
 def generateEG_alpha_beta_randomness(p,q,g,sk,pk,m): #m este mesajul in clar (plaintext)
     randomness = randint(1, q - 1)  # randomness
     alpha = pow(g, randomness, p)
     beta = (pow(g, m, p) * pow(pk, randomness, p)) % p
     return  alpha, beta, randomness
 
-
-def ZKProofIACR_Trustee_verify_sk(p,q,g,sk,pk):
-#verific ca sk s-a generat corect pentru pk
-    sk1 = randint(1, q - 1)  # secret key
-    pk1 = pow(g, sk1, p)  # public key=h
-    challenge=randint(1,q-1)
-    pk2=pk1*pow(pk,challenge,p) %p
-    sk2= (sk1+challenge*sk) %q
-    #print('pow(g,sk2,p)=',pow(g,sk2,p))
-    #print('pk2=',pk2)
-    return(pow(g,sk2,p)==pk2)
-
 #verific ca sk s-a generat corect pentru pk   # pag 31/45 din IACR
-
 def ZKProofIACR_verify_sk(p,q,g,sk,pk,sk_trustee,pk_trustee):
     sk1 = sk_trustee
     pk1 = pk_trustee
@@ -57,7 +43,6 @@ def ZKProofIACR_verify_sk(p,q,g,sk,pk,sk_trustee,pk_trustee):
     return(pow(g,sk2,p) == pk2)
 
 # din Helios V4
-
 def ChaumPederson_proof_that_alpha_beta_encodes_m(p, q, g, pk, m, alpha, beta, randomness):
     w = randint(1, q - 1)
     A = pow(g, w, p)
@@ -81,36 +66,10 @@ def ChaumPederson_correct_decryption(p, q, g, alpha, beta, pk, sk, pk_trustee, s
     verif2 = pow(g, sk, p) == v * pow(pk, challenge, p)
     return verif1 == verif2
 
-def verify_partial_decryption_proof(p,q,g,pk,sk,m,alpha,beta,randomness):
-# verifica daca (alpha,beta,randomness) si (pk,p,q,g) cripteaza m
-    w = randint(1, q - 1)
-    A = pow(g, w, p)
-    B = pow(pk, w, p)
-    challenge = randint(1, q - 1)
-    response = w + challenge * randomness
-    verify_alpha=(A * pow(alpha, challenge, p)) % p == pow(g, response, p)
-    beta_over_m = (sympy.mod_inverse(pow(g, m, p), p) * beta) % p
-    verify_beta= pow(pk, response, p) == ((B * pow(beta_over_m, challenge, p)) % p)
-    #print('verif alpha=', (A * pow(alpha, challenge, p)) % p == pow(g, response, p))
-    #print('st1=', pow(pk, response, p), '\n', 'dr1=', (B * pow(beta_over_m, challenge, p)) % p)
-    #print('verif beta over m=', pow(pk, response, p) == (B * pow(beta_over_m, challenge, p)) % p)
-
-    dec_factor=pow(alpha,sk,p)
-    if pow(g,response,p)!= (A* pow(pk,challenge,p) % p):
-        return False
-    if(pow(alpha, response,pk) != (B* pow(dec_factor,challenge,p)) % p):
-        return False
-
-    str_to_hash=str(A)+","+str(B)
-    computed_challenge=int(hashlib.sha256(str_to_hash.encode()).hexdigest(),16)
-
-    return True
-    #return computed_challenge==challenge
 
 
 def main():
     generateEG_p_q_g()
-
 
 
 if __name__ == "__main__":

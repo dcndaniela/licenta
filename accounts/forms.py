@@ -20,17 +20,20 @@ class RegisterForm(forms.Form):
                                 widget=forms.PasswordInput(attrs={'class':'form-control'}),
                                 validators = [MinLengthValidator(8, message = "Password must have at least 8 characters!"),
                                               MaxLengthValidator(50, message = "Password should have maximum 50 characters!"),
-                                              RegexValidator(r'^[a-z]+[A-Z][0-9][_!+-?*]+$',
-                                                             message='Password must contain at least one Upper case,'
-                                                                     ' one digit and one _!+-?* symbol!')]
+                                              # RegexValidator(r'^[a-z]+[A-Z][0-9][_!+-?*]+$',
+                                              RegexValidator(r'^[a-zA-Z0-9_!+-?*]+$',
+                                                             message = 'Password must contain at least one Upper case,'
+                                                                       ' one digit and one _!+-?* symbol!')
+                                              ]
                                 )
     password2 = forms.CharField(label = 'Confirm Password', max_length = 50, min_length=8,
                                 widget=forms.PasswordInput(attrs={'class':'form-control'}),
                                 validators = [MinLengthValidator(8, message = "Password must have at least 8 characters!"),
                                               MaxLengthValidator(50,message = "Password should have maximum 50 characters!"),
-                                              RegexValidator(r'^[a-z]+[A-Z][0-9][_!+-?*]+$',
+                                              RegexValidator(r'^[a-zA-Z0-9_!+-?*]+$',
                                                              message='Password must contain at least one Upper case,'
-                                                                     ' one digit and one _!+-?* symbol!')]
+                                                                     ' one digit and one _!+-?* symbol!')
+                                              ]
                                 )
     def clean_cnp(self):
         cnp=self.cleaned_data['cnp']

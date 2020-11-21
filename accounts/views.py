@@ -59,45 +59,35 @@ def RegisterView(request):
 def FailedLogInView(request):
     return render(request, 'accounts/failed_login.html',{})
 
-
-def ResetPasswordView(request):
-    if request.method=='POST':
-        form=ResetPasswordForm(request.POST)
-
-        if form.is_valid():# is_valid apeleaza automat clean()
-            #user=form.save()
-
-            cnpu= form.cleaned_data['cnp']
-            passw=form.cleaned_data['password1'] #cleaned_data este un dictionary
-            phoneu=form.cleaned_data['phone']
-            print('password reset=', passw)
-
-            if not (User.objects.filter(cnp=cnpu).filter(phone=phoneu)) :
-                messages.error(request, 'CNP or phone number invalid!',
-                               extra_tags = 'alert alert-danger alert-dismissible fade show')
-                return redirect('accounts:reset_password')
-
-            user1 = User.objects.filter(cnp = cnpu).filter(phone = phoneu).__getattribute__(alias)
-            #uidb64 = self.kwargs['uidb64']
-            #uid = urlsafe_base64_decode(uidb64)
-            user1 = get_object_or_404(User,id=0)
-            user= User._default_manager.get(pk=user1.pk)
-            print('user1=', user1)
-            user.set_password(passw)
-            print('user=',user)
-            #user.password=passw
-            #user.save()
-            #user.update(password=passw)
-            #form.save()
-
-           # update_session_auth_hash(request, request.user)  # User-ul ramane logat dupa ce isi schimba parola
-            messages.success(request, 'Password successfully reset!',
-                             extra_tags = 'alert alert-success alert-dismissible fade show')
-            return redirect('accounts:login')
-    else:
-        form=ResetPasswordForm()
-    return render(request, 'accounts/reset_password.html',{'form': form} )
-
+#
+# def ResetPasswordView(request):
+#     if request.method=='POST':
+#         form=ResetPasswordForm(request.POST)
+#
+#         if form.is_valid():# is_valid apeleaza automat clean()
+#             cnpu= form.cleaned_data['cnp']
+#             passw=form.cleaned_data['password1'] #cleaned_data este un dictionary
+#             phoneu=form.cleaned_data['phone']
+#             print('password reset=', passw)
+#
+#             if not (User.objects.filter(cnp=cnpu).filter(phone=phoneu)) :
+#                 messages.error(request, 'CNP or phone number invalid!',
+#                                extra_tags = 'alert alert-danger alert-dismissible fade show')
+#                 return redirect('accounts:reset_password')
+#
+#             user1 = User.objects.filter(cnp = cnpu).filter(phone = phoneu).__getattribute__(alias)
+#             user1 = get_object_or_404(User,id=0)
+#             user= User._default_manager.get(pk=user1.pk)
+#             user.set_password(passw)
+#
+#            # update_session_auth_hash(request, request.user)  # User-ul ramane logat dupa ce isi schimba parola
+#             messages.success(request, 'Password successfully reset!',
+#                              extra_tags = 'alert alert-success alert-dismissible fade show')
+#             return redirect('accounts:login')
+#     else:
+#         form=ResetPasswordForm()
+#     return render(request, 'accounts/reset_password.html',{'form': form} )
+#
 
 @login_required
 def ChangePasswordView(request):

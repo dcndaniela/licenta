@@ -19,18 +19,15 @@ class ElectionForm(forms.ModelForm): #acest form il import in views.py
                                   MinLengthValidator(5, message = "Choice text should have at least 5 characters!"),
                                   RegexValidator(r'^[a-zA-Z0-9\s]+$', 'Enter a valid valid choice text!')]
                               )
-    #start_date=forms.CharField(widget=forms.Textarea)
+
     class Meta: #pt a defini datele actuale ale clasei
         model= Election
         fields=['election_title','election_content','start_date','end_date','isActive']
-        #model.start_date=forms.DateField(widget = DateInput) #ca sa selectez data din calendar
         model.start_date = forms.DateTimeField()
         model.end_date = forms.DateTimeField()
         widgets= {
             'election_title':forms.Textarea(attrs = {"class":"form-control", "rows":1,"cols":10}),
             'election_content': forms.Textarea(attrs = {"class":"form-control", "rows":1,"cols":10}),
-            # 'start_date': forms.DateTimeField(),
-            # 'end_date': forms.DateTimeField(),
             'isActive':forms.CheckboxInput()
                 }
 
@@ -39,7 +36,6 @@ class EditElectionForm(forms.ModelForm):
         model = Election
         model.election_title=forms.CharField(widget=forms.TextInput(attrs={'class':'form-control'}))
         fields = ['election_title', 'election_content', 'start_date', 'end_date', 'isActive']
-        # model.start_date=forms.DateField(widget = DateInput) #ca sa selectez data din calendar
         model.start_date = forms.DateTimeField()
         model.end_date = forms.DateTimeField()
         widgets = {

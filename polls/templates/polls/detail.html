@@ -13,7 +13,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-sm-9 offset-sm-1">
+        <div class="col-sm-10 offset-sm-1">
 
 {% if messages %}
       {% for message in messages %}
@@ -34,12 +34,10 @@
 {% endif %}
 
 <div class="offset-sm-2">
-<!--    <i>Election name:</i> <b>{{election.election_title}}</b>-->
 
 <br>
 
 <h2 >{{ election.election_content }}</h2>
-
 
             <form action="{% url 'polls:vote' election.id %}" method="post"> <!-- polls=namespace din urls, vote=namespace din polls.urls -->
                 {% csrf_token %}
@@ -69,16 +67,5 @@
         </div>
     </div>
 </div>
-
-
-
-
-<!--<button onclick="myFunction()">Click me!</button>-->
-<!--<p id="demo"></p>-->
-<!--<script>-->
-<!--    function myFunction() {-->
-<!--        document.getElementById("demo").innerHTML = "Hello Dear Visitor";-->
-<!--    }-->
-<!--</script>-->
 
 {% endblock %}

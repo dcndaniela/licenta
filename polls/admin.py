@@ -31,8 +31,6 @@ class ElectionAdmin(admin.ModelAdmin): # admin.ModelAdmin = clasa din care moste
         'start_date',
         'end_date',
         'isActive',
-        'public_key',
-        'secret_key',
         'p',
         'q',
         'g',

@@ -26,8 +26,6 @@ class Election(models.Model):
     p = models.IntegerField(default = 0) # ordin grup
     q = models.IntegerField(default = 0) # (p-1)/2
     g = models.IntegerField(default = 0) # nr random folosit la generare (pk,secret_key)
-    public_key = models.IntegerField(default = 0) #cheia publica
-    secret_key = models.IntegerField(default = 0) # cheia privata
 
     def __str__(self):  # aceasta functie exista pt fiecare obiect, deci ii fac override aici
         return self.election_title
@@ -53,12 +51,11 @@ class Election(models.Model):
             return False
         return True
 
-
-
     #@property
     def is_first_vote_for_this_election(self, user):
         # returneaza True daca userul NU a votat inca
-        vote=Vote.objects.filter(voter=user).filter(election=self)
+        # cauta printre voturile valide
+        vote=Vote.objects.filter(voter=user).filter(election=self).filter(invalidated_at__isnull=True)
         if vote.exists():
             return False
         return True
@@ -66,7 +63,8 @@ class Election(models.Model):
     @property  # ca sa pot apela num_votes-proprietate, in loc de num_votes() -functie
      #astfel o pot apela in templates (html)
     def num_votes(self):
-        return self.verifiedvote_set.count()
+        #return self.validvote_set.count()
+        return ValidVote.objects.filter(election=self).count()
 
     def get_results_dict(self):
         # returneaza o lista de obiecte de forma
@@ -106,7 +104,6 @@ class Choice(models.Model):  # 1 Election are mai multe Choices
 
     def __str__(self):
         return self.choice_text
-
 
 
 class Vote(models.Model):  # ca un user sa NU poata vota de mai multe ori

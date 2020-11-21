@@ -20,14 +20,13 @@ def HomeView(request):
 def IndexView(request):
     is_allowed = request.user.is_staff or request.user.is_superuser
     searchContent = ""  # ce contine initial search-ul
-    #user_current = functiiUtile.get_user_type(request)  # uuid
 
     if functiiUtile.is_Admin_or_Staff(request):
         polls = Election.objects.all().order_by('start_date')  # Admin ul sau Stuff ul vede toate polls
     else:
         # cele active care au start_date inainte de prezentul meu
-        polls = Election.objects.filter(isActive = True).filter(start_date__lte = timezone.now()).order_by(
-            '-start_date')
+        polls = Election.objects.filter(isActive = True).order_by('-start_date')
+#.filter(start_date__lte = timezone.now())
 
     if 'title' in request.GET:  # ordonare crescator dupa titlu
         polls = polls.order_by('election_title')
@@ -89,13 +88,10 @@ def AddElectionView(request):
                 return render(request, 'polls/add.html', context)
 
             p, q, g = algoritmi.generateEG_p_q_g()
-            public_key, secret_key = algoritmi.generateEG_pk_sk(p, q, g)
-            new_election.p = p
 
+            new_election.p = p
             new_election.q = q
             new_election.g = g
-            new_election.public_key = public_key
-            new_election.secret_key = secret_key
             new_election.modified_at = timezone.now()
             new_election = form.save()  # salvez in BD
             new_election.save()
@@ -108,19 +104,16 @@ def AddElectionView(request):
                 election = new_election,
                 choice_text = form.cleaned_data['choice2']  # choice2 din forms.py
                 ).save()
-            # creez Trustee1
 
-            posk = algoritmi.ZKProofIACR_Trustee_verify_sk(p, q, q, secret_key, public_key)
+            # creez Trustee1
+            public_key, secret_key = algoritmi.generateEG_pk_sk(p, q, g)
             name = "Trustee1"
-            new_trustee1 = Trustee(election = new_election, public_key = public_key, secret_key = secret_key,
-                                   posk = posk, name = name)
+            new_trustee1 = Trustee(election = new_election, public_key = public_key, secret_key = secret_key, name = name)
             new_trustee1.save()
             # creez Trustee2
             public_key_t2, secret_key_t2 = algoritmi.generateEG_pk_sk(p, q, g)
-            posk2 = algoritmi.ZKProofIACR_Trustee_verify_sk(p, q, q, secret_key_t2, public_key_t2)
             name2 = "Trustee2"
-            new_trustee2 = Trustee(election = new_election, public_key = public_key_t2, secret_key = secret_key_t2,
-                                   posk = posk2, name = name2)
+            new_trustee2 = Trustee(election = new_election, public_key = public_key_t2, secret_key = secret_key_t2,name = name2)
             new_trustee2.save()
 
             # alert alert-success este din Bootstrap
@@ -306,11 +299,11 @@ def VotesIndexView(request, poll_id):
 
     votes_number = verified_votes.count()
 
-    searchContent = ""
+    searchContent1 = ""
     if 'searchCastedVote' in request.GET:
-        searchContent = request.GET['searchCastedVote']  # ce a tastat User ul in search
+        searchContent1 = request.GET['searchCastedVote']  # ce a tastat User ul in search
         # headline(adica election_title) + __ + metoda folosita(adica icontains)
-        verified_votes = verified_votes.filter(vote_hash__icontains = searchContent)
+        verified_votes = verified_votes.filter(vote_hash__icontains = searchContent1)
 
     # cate 4 votes pe pagina
     paginator = Paginator(verified_votes, 4)
@@ -325,7 +318,7 @@ def VotesIndexView(request, poll_id):
 
     context = {
         'verified_votes': verified_votes_paginated, 'poll': poll, 'exists_votes': exists_votes,
-        'votes_number': votes_number, 'searchContent': searchContent,
+        'votes_number': votes_number, 'searchContent1': searchContent1,
         }
     return render(request, 'polls/votes_index.html', context)
 
@@ -339,7 +332,6 @@ def ResultsView(request, poll_id):
                        extra_tags = 'alert alert-danger alert-dismissible fade show')
         return redirect('polls:index')
 
-    # is_first_vote_for_this_election = poll.is_first_vote_for_this_election(request.user)
     results, max_votes = poll.get_results_dict()
     print('rezultate=',results)
     winners = []
@@ -407,12 +399,12 @@ def vote(request, poll_id):
             m_modulo=int(choice_id )% int(election.p)
 
         m = int(hashlib.sha256(str(m_modulo).encode()).hexdigest(), 16)
-        # pentru fiecare vot nou se geneereaza o pereche (pk,sk)
+        # pentru fiecare vot nou se genereaza o pereche (pk,sk)
         pk_vote, sk_vote = algoritmi.generateEG_pk_sk(election.p, election.q, election.g)
         alpha_vote, beta_vote, randomness_vote = algoritmi.generateEG_alpha_beta_randomness(election.p, election.q,
                                                                                             election.g, sk_vote,
                                                                                             pk_vote, m)
-        validare_Helios = algoritmi.ChaumPederson_proof_that_alpha_beta_encodes_m(election.p, election.q,
+        validare_Voote5 = algoritmi.ChaumPederson_proof_that_alpha_beta_encodes_m(election.p, election.q,
                                                                                   election.g,
                                                                                   pk_vote, m, alpha_vote,
                                                                                   beta_vote, randomness_vote)
@@ -431,18 +423,13 @@ def vote(request, poll_id):
                                                                       pk_vote,
                                                                       trustee2.secret_key, trustee2.public_key,
                                                                       alpha_vote, beta_vote, randomness_vote, m)
-        print('trustee1=', trustee1)
-        print('trustee2=', trustee2)
 
         ok = False
         verified_at = timezone.now()
         new_vote.verified_at = verified_at
         new_vote.save()
-        print('validare Helios=', validare_Helios, 'validare_trustee1=', validare_trustee1,
-              'validare_trustee2=', validare_trustee2, 'trustee1.posk =', trustee1.posk, 'trustee2.posk=',
-              trustee2.posk)
-        if validare_Helios and validare_trustee1 and validare_trustee2:  # and trustee1.posk and trustee2.posk:
 
+        if validare_Voote5 and validare_trustee1 and validare_trustee2:
             choice.num_votes=choice.num_votes+1#creste nr de voturi pentru aceasta choice
             choice.save()
 
@@ -471,11 +458,10 @@ def vote(request, poll_id):
             invalidated_at = timezone.now()
             messages.error(request,
                            'Something went wrong! Your vote has NOT been casted!'
-                           'Please retry! If thprme problem persists, please contact us on voote5@voote5.com!',
+                           'Please retry! If the problem persists, please contact us on voote5@voote5.com!',
                            extra_tags = 'alert alert-danger alert-dismissible fade show')
             new_vote.invalidated_at = invalidated_at
             new_vote.save()
             return redirect('polls:detail', poll_id = poll_id)
 
-    #return render(request,'polls:index',{'is_first_vote_for_this_election':is_first_vote_for_this_election})
     return redirect("polls:detail", poll_id = poll_id)

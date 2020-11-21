@@ -1,13 +1,6 @@
 from django.utils import timezone
 
 
-def get_user_type(request):#ce tip de user este conectat acum
-    if request.user.is_superuser:
-        return "Administrator"
-    if request.user.is_staff:
-        return "Stuff"
-    return "User"
-
 def is_Admin_or_Staff(request):
     return request.user.is_staff or request.user.is_superuser
 
@@ -36,6 +29,7 @@ def is_CNP_valid(cnp):
         for i in range(0,12):
             suma = suma + int(cnp[i]) * int(nr[i])
         cif_control = suma % 11
+        print("c_contr=",cif_control)
         if suma % 11 == 10:
             cif_control = 1
         if cif_control == int(cnp[12]):
@@ -57,7 +51,8 @@ def can_see_DetailView(request,poll):
 
 
 def main():
-    print('este valid:',is_CNP_valid("2990211385570"))
+    # print('este valid:',is_CNP_valid("2990211385570"))
+    print('este valid:', is_CNP_valid("2990211385562"))
 
 
 if __name__ == "__main__":

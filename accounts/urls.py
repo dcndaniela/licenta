@@ -11,6 +11,5 @@ urlpatterns = [
     path('logout/', views.LogoutView, name = 'logout'),
     path('register/', views.RegisterView, name = 'register'),
     path('change_password/', views.ChangePasswordView, name='change_password'),
-    path('reset_password/', views.ResetPasswordView, name = 'reset_password'),
 
 ]
